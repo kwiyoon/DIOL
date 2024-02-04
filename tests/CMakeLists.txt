@@ -1,8 +1,8 @@
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-add_executable(test_example
-        test_example.cpp
-        ../src/main_example.cpp
+add_executable(hw1_haena_test
+        hw1_haena_test.cpp
+        ../src/hw1_haena.cpp
 )
 
-target_link_libraries(test_example gtest gtest_main)
+target_link_libraries(hw1_haena_test gtest gtest_main)
