@@ -20,6 +20,3 @@ public:
     void insertData(unsigned int key, int value);
     int readData(int64_t key);
 };
-
-
-

@@ -17,7 +17,6 @@ bool LSM::isFull(){
 
 bool LSM::compaction(){
     Disk=Mem;
-
     return 1;
 }
 

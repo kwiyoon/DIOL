@@ -2,7 +2,7 @@
 // Created by 나경 on 2024/02/04.
 //
 #include <gtest/gtest.h>
-#include "../../src/hw1_nagyeongLSM.h"
+#include "../../hw/hw1_nagyeongLSM.h"
 
 using namespace std;
 
