@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/hw1_haena.h"
+#include "../../hw/hw1_haena.h"
 
 using namespace std;
 
@@ -23,6 +23,9 @@ TEST(insert,insert) {  //기본 Insert
     for(const auto &entry : Mem){
         cout <<" 하이 "<<entry.first <<", "<<entry.second<<" 빠이 \n";
     }
+
+    cout <<" 하이 "<<tree->readData(1)<<" 빠이 \n";
+
 
     // then
     ASSERT_EQ(Mem.begin()->first, key);
