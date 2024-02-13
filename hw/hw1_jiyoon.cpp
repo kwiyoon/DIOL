@@ -27,6 +27,7 @@ public:
     }
 
 // full : 1, not full : 0
+    // TODO: Memtable 인터페이스 구현 후, 이거 추상 함수로 하면 될 듯
     bool isFull() {
         size_t currentSize = memtable.size() * (sizeof(unsigned int) + sizeof(int));
         return currentSize >= MEM_SIZE;
@@ -36,15 +37,12 @@ public:
     int readData(unsigned int key) {
         auto mem_it = memtable.find(key);
         if (mem_it != memtable.end()) {
-            cout << "mem 에서 find\n";
             return mem_it->second;
         } else { // key X -> disk 살피기
             auto disk_it = disk.find(key);
             if (disk_it != disk.end()) {
-                cout << "disk 에서 find\n";
                 return disk_it->second;
             } else {
-                cerr << "data 없음!!\n";
             }
         }
     }
@@ -60,6 +58,7 @@ public:
             disk[entry.first] = entry.second;
         }
 
+        memtable.clear();
         return true;
     }
 };
