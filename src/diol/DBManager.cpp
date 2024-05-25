@@ -2,13 +2,13 @@
 
 
 bool DBManager::insert(uint64_t key, int value){
-    activeMemtableController.insert(key, value);
+    return activeMemtableController.insert(key, value);
 }
 int DBManager::readData(uint64_t key){
     immMemtableController.read(key);
 }
-map<unsigned int, int> DBManager::range(uint64_t start, uint64_t end){
-    immMemtableController.range(start, end);
+map<uint64_t , int> DBManager::range(uint64_t start, uint64_t end){
+    return immMemtableController.range(start, end);
 }
 //bool DBManager::isFull(IMemtable& memtable){
 //
@@ -45,12 +45,10 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
         immutableController.decreaseTTL();
         updateKeys(normalPtr);
         normalPtr->setDelayCount(DelayDetector::detect(normalPtr));
-        IMemtable* activeNormalMemtable = activeController.updateNormalMem(getIdAndIncrement());
-        activeNormalMemtable->setStartKey(maxKey);
-        return dynamic_cast<NormalMemtable*>(activeNormalMemtable);
+        return activeController.updateNormalMem(getIdAndIncrement());
     } else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
         updateKeys(delayPtr);
-        return dynamic_cast<NormalMemtable*>(activeController.updateDelayMem(getIdAndIncrement()));
+        return activeController.updateDelayMem(getIdAndIncrement());
     }else
         throw logic_error("DBManager::transformM0ToM1 주소비교.. 뭔가 문제가 있는 듯 하오.");
 }
