@@ -5,7 +5,10 @@ bool DBManager::insert(uint64_t key, int value){
     return activeMemtableController.insert(key, value);
 }
 int DBManager::readData(uint64_t key){
-    immMemtableController.read(key);
+    // 만약 해당 키가 액티브
+    if(activeMemtableController.activeNormalMemtable->startKey < key)
+        return NULL;
+    return immMemtableController.read(key);
 }
 map<uint64_t , int> DBManager::range(uint64_t start, uint64_t end){
     return immMemtableController.range(start, end);
