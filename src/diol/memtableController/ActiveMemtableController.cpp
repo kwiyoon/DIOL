@@ -35,10 +35,12 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
     return true;
 }
 
-IMemtable* ActiveMemtableController::updateNormalMem(int id) {
+NormalMemtable* ActiveMemtableController::updateNormalMem(int id) {
     activeNormalMemtable = new NormalMemtable(id);
+    return activeNormalMemtable;
 }
 
-IMemtable* ActiveMemtableController::updateDelayMem(int id) {
+DelayMemtable* ActiveMemtableController::updateDelayMem(int id) {
     activeDelayMemtable = new DelayMemtable(id);
+    return activeDelayMemtable;
 }
