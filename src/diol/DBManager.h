@@ -4,6 +4,8 @@
 #include "memtable/IMemtable.h"
 #include "memtableController/ActiveMemtableController.h"
 #include "memtableController/ImmutableMemtableController.h"
+#include "CompactionController.h"
+#include "FlushController.h"
 
 class DBManager {
 public:

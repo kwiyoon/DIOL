@@ -2,7 +2,6 @@
 #define COMPACTPROCESSOR_H
 
 #include "memtable/IMemtable.h"
-#include "memtable/DelayMemtable.h"
 #include <iostream>
 
 using namespace std;

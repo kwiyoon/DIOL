@@ -2,8 +2,6 @@
 #define ACTIVEMEMTABLECONTROLLER_H
 
 #include "../memtable/IMemtable.h"
-#include "../memtable/NormalMemtable.h"
-#include "../memtable/DelayMemtable.h"
 
 using namespace std;
 

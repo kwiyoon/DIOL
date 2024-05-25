@@ -2,8 +2,6 @@
 #define IMMUTABLEMEMTABLECONTROLLER_H
 
 #include "../memtable/IMemtable.h"
-#include "../memtable/NormalMemtable.h"
-#include "../memtable/DelayMemtable.h"
 #include "../CompactProcessor.h"
 #include "../MockDisk.h"
 #include <iostream>

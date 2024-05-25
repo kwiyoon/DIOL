@@ -44,5 +44,20 @@ public:
     void initTTL();
 };
 
+class DelayMemtable : public IMemtable {
+public:
+    DelayMemtable(int id);
+
+    size_t memtableSize = memtableSize/16; // Normal/4
+};
+
+class NormalMemtable : public IMemtable {
+public:
+    NormalMemtable(int id);
+    void setDelayCount(int cnt);
+    size_t memtableSize = 4 * 1024;
+
+    int delayCount = 0; // Normal IMM만 사용
+};
 
 #endif // MEMTABLE_H
