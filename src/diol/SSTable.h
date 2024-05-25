@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 enum Type {
     N, D
 };

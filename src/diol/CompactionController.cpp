@@ -4,11 +4,12 @@
 
 // TODO (new) : queue에 넣으면 ImmList에선 빼? ㅇㅇ
 void CompactionController::checkTimeOut() {
+    ImmutableMemtableController& immController = ImmutableMemtableController::getInstance();
     bool timeoutFound = false;
-    for (const auto memtable : normalImmMemtableList_M1) {
+    for (const auto memtable : immController.normalImmMemtableList_M1) {
         if (memtable->ttl == 0) {
-            compactionQueue.push(memtable);
-            ImmutableMemtableController::erase(normalImmMemtableList_M1, memtable);
+            immController.compactionQueue.push(memtable);
+            immController.erase(immController.normalImmMemtableList_M1, memtable);
             timeoutFound = true;
         }
     }
@@ -19,18 +20,20 @@ void CompactionController::checkTimeOut() {
         // 타임아웃된 Memtable이 없을 경우 가장 delay 추정치가 적은 Memtable을 찾아 queue에 삽입
         IMemtable* minDelayMemtable = findCompactionMem();
         if(minDelayMemtable != NULL) {
-            compactionQueue.push(minDelayMemtable);
-            ImmutableMemtableController::erase(normalImmMemtableList_M1, minDelayMemtable);
+            immController.compactionQueue.push(minDelayMemtable);
+            immController.erase(immController.normalImmMemtableList_M1, minDelayMemtable);
         }
     }
 }
 
 // delay count가 가장 적은 memtable find
 IMemtable* CompactionController::findCompactionMem() {
+    ImmutableMemtableController& immContoler = ImmutableMemtableController::getInstance();
+
     // TODO : 수정
     int minDelay = INT_MAX;
     IMemtable* imm;
-    for (const auto memtable : normalImmMemtableList_M1) {
+    for (const auto memtable : immContoler.normalImmMemtableList_M1) {
         if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)) {
             if (normalPtr->delayCount < minDelay) {
                 minDelay = normalPtr->delayCount;

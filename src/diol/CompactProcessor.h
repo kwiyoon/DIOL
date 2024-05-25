@@ -1,6 +1,5 @@
-
-#ifndef IOTDB_LSM_COMPACTPROCESSOR_H
-#define IOTDB_LSM_COMPACTPROCESSOR_H
+#ifndef COMPACTPROCESSOR_H
+#define COMPACTPROCESSOR_H
 
 #include "memtable/IMemtable.h"
 #include "memtable/DelayMemtable.h"
@@ -20,4 +19,4 @@ public:
 };
 
 
-#endif // IOTDB_LSM_COMPACTPROCESSOR_H
+#endif // COMPACTPROCESSOR_H

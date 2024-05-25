@@ -4,6 +4,8 @@
 #include <list>
 #include "SSTable.h"
 #include "memtable/IMemtable.h"
+#include "memtable/NormalMemtable.h"
+#include "memtable/DelayMemtable.h"
 #include "SSTable.h"
 
 

@@ -21,10 +21,10 @@ public:
         return instance;
     }
 
-    static vector<IMemtable*> normalImmMemtableList_M1;
-    static vector<IMemtable*> delayImmMemtableList_M1;
-    static vector<IMemtable*> normalImmMemtableList_M2;
-    static vector<IMemtable*> delayImmMemtableList_M2;
+    vector<IMemtable*> normalImmMemtableList_M1;
+    vector<IMemtable*> delayImmMemtableList_M1;
+    vector<IMemtable*> normalImmMemtableList_M2;
+    vector<IMemtable*> delayImmMemtableList_M2;
     queue<IMemtable*> compactionQueue;
     queue<IMemtable*> flushQueue;
     CompactProcessor* compactProcessor;
@@ -39,8 +39,8 @@ public:
     bool isDelayMemsFull();
     void putMemtableToQueue(IMemtable*);
     void decreaseTTL();
-    static void erase(vector<IMemtable*>& v, IMemtable* memtable);
-    static void transformM1toM2(IMemtable*);
+    void erase(vector<IMemtable*>& v, IMemtable* memtable);
+    void transformM1toM2(IMemtable*);
 private:
     ImmutableMemtableController(){
         compactProcessor = new CompactProcessor();
