@@ -23,8 +23,21 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
     if (memtable.isFull()) {
         try {
             IMemtable* newMemtable = dbmanager.transformM0ToM1(&memtable);
-            newMemtable->setStartKey(key);
-            newMemtable->put(key, value);
+//            activeNormalMemtable
+//            if(newMemtable->startKey>key){  //delay data
+//                insertData(*activeDelayMemtable, key, value);
+//            }else{ //normal data
+//                newMemtable->setStartKey(key);
+//                newMemtable->put(key, value);
+//            }
+
+            if(activeNormalMemtable->startKey>key){  //delay data
+                insertData(*activeDelayMemtable, key, value);
+            }else{ //normal data
+                activeNormalMemtable->setStartKey(key);
+                activeNormalMemtable->put(key, value);
+            }
+
             return true;
         } catch (exception &e) {
             cerr << e.what() << "\n";
