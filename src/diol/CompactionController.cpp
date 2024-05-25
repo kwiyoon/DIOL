@@ -6,13 +6,16 @@
 void CompactionController::checkTimeOut() {
     ImmutableMemtableController& immController = ImmutableMemtableController::getInstance();
     bool timeoutFound = false;
-    for (const auto memtable : immController.normalImmMemtableList_M1) {
-        if (memtable->ttl == 0) {
-            immController.compactionQueue.push(memtable);
-            immController.erase(immController.normalImmMemtableList_M1, memtable);
-            timeoutFound = true;
+    if(!immController.normalImmMemtableList_M1.empty()){
+        for (const auto memtable : immController.normalImmMemtableList_M1) {
+            if (memtable->ttl == 0) {
+                immController.compactionQueue.push(memtable);
+                immController.erase(immController.normalImmMemtableList_M1, memtable);
+                timeoutFound = true;
+            }
         }
     }
+
     /** timeoutFound = true라면, 가장 많이 겹치는 delay 찾아서 컴팩션 해야함.
         TODO (new) : ㄴ> 이건 compaction proccess 시 거기서 이루어질 것.
     */
@@ -28,16 +31,18 @@ void CompactionController::checkTimeOut() {
 
 // delay count가 가장 적은 memtable find
 IMemtable* CompactionController::findCompactionMem() {
-    ImmutableMemtableController& immContoler = ImmutableMemtableController::getInstance();
+    ImmutableMemtableController& immContoller = ImmutableMemtableController::getInstance();
 
     // TODO : 수정
     int minDelay = INT_MAX;
-    IMemtable* imm;
-    for (const auto memtable : immContoler.normalImmMemtableList_M1) {
-        if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)) {
-            if (normalPtr->delayCount < minDelay) {
-                minDelay = normalPtr->delayCount;
-                imm = normalPtr;
+    IMemtable* imm = NULL;
+    if(!immContoller.normalImmMemtableList_M1.empty()) {
+        for (const auto memtable: immContoller.normalImmMemtableList_M1) {
+            if (auto normalPtr = dynamic_cast<NormalMemtable *>(memtable)) {
+                if (normalPtr->delayCount < minDelay) {
+                    minDelay = normalPtr->delayCount;
+                    imm = normalPtr;
+                }
             }
         }
     }
