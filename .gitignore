@@ -19,4 +19,4 @@ tests/lib/
 ### Mac file ###
 .DS_Store
 
-
+tests/test_example.cpp
