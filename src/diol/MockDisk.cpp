@@ -27,7 +27,7 @@ int MockDisk::read(uint64_t key) {
     }
 
     //없어요
-    return -1;
+    return NULL;
 }
 
 map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {

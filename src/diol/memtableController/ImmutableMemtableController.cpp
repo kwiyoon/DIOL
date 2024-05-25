@@ -5,7 +5,6 @@ list<string> ids;
 bool flag;
 // ======
 
-
 map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v){
     map<uint64_t, int> segment;
 
@@ -42,11 +41,13 @@ map<uint64_t, int> ImmutableMemtableController::range(uint64_t start, uint64_t e
         diskData=diskRange(start, end);
     }
 
+    /*
     if(!ids.empty()){
         cout << "found in immMemtables ";
         for (auto id: ids) cout << id;
         cout <<"\n";
     }
+     */
 
     //병합
     results.insert(diskData.begin(), diskData.end());
@@ -75,35 +76,40 @@ void ImmutableMemtableController::putMemtableToQueue(IMemtable* memtable) {
 }
 
 int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& v){
-    for (auto imm : delayImmMemtableList_M1) {
+    for (auto imm : v) {
+        // TODO : 핑거어쩌고
+        if(imm->startKey > key || imm->lastKey < key) continue;
         // 맵에서 키 검색
         auto it = imm->mem.find(key);
         if (it != imm->mem.end()) {
-            cout<<"(found in id:"<<imm->memtableId<<")";
+            LOG_ID(imm->memtableId);
             imm->increaseAccessCount(1);
             return it->second;  // 키를 찾았으면 값 반환
         }
     }
+    return NULL;
 }
 
 int ImmutableMemtableController::read(uint64_t key) {
-    readInVector(key, normalImmMemtableList_M1);
-    readInVector(key, normalImmMemtableList_M2);
-    readInVector(key, delayImmMemtableList_M1);
-    readInVector(key, delayImmMemtableList_M2);
+    int value = NULL;
+    value = readInVector(key, normalImmMemtableList_M1);
+    if(value == NULL) readInVector(key, normalImmMemtableList_M2);
+    if(value == NULL) readInVector(key, delayImmMemtableList_M1);
+    if(value == NULL) readInVector(key, delayImmMemtableList_M2);
 
+    if(value != NULL) return value;
     return diskRead(key); //빈함수
 }
 
 int ImmutableMemtableController::diskRead(uint64_t key){
-    cout<<"reading Disk data~";
+//    cout<<"reading Disk data~";
     disk->readCount++;
 
     return disk->read(key);
 }
 
 map<uint64_t, int> ImmutableMemtableController::diskRange(uint64_t start, uint64_t end){
-    cout<<"ranging Disk datas~ ";
+//    cout<<"ranging Disk datas~ ";
     map<uint64_t, int> diskData = disk->range( start, end);
     disk->readCount += diskData.size();
 

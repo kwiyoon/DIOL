@@ -7,6 +7,10 @@
 #include <iostream>
 #include <queue>
 
+
+#define LOG_ID(int) \
+    cout<<"(found in id:"<<imm->memtableId<<")\n";
+
 using namespace std;
 
 static const int LIMIT_SIZE_M1 = 3;
