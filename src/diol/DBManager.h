@@ -2,11 +2,13 @@
 #define DBMANAGER_H
 
 #include "memtable/IMemtable.h"
+#include "DelayDetector.h"
 #include "memtableController/ActiveMemtableController.h"
 #include "memtableController/ImmutableMemtableController.h"
 #include "CompactionController.h"
 #include "FlushController.h"
 
+class FlushController;
 class DBManager {
 public:
     static DBManager& getInstance(){

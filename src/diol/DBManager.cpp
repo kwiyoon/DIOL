@@ -1,7 +1,7 @@
 #include "DBManager.h"
-#include "DelayDetector.h"
 
-bool DBManager::insert(uint64_t key, uint64_t value){
+
+bool DBManager::insert(uint64_t key, int value){
     activeMemtableController.insert(key, value);
 }
 int DBManager::readData(uint64_t key){
@@ -26,7 +26,7 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
     uint64_t minKey = numeric_limits<uint64_t>::max();
     uint64_t maxKey = numeric_limits<uint64_t>::min();
 
-    auto updateKeys = [&](auto memtablePtr) {
+    auto updateKeys = [&](IMemtable* memtablePtr) {
         for (const auto& entry : memtablePtr->mem) {
             if (entry.first < minKey) minKey = entry.first;
             if (entry.first > maxKey) maxKey = entry.first;

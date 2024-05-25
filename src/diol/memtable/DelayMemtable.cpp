@@ -1,4 +1,4 @@
-#include "DelayMemtable.h"
+#include "IMemtable.h"
 
 DelayMemtable::DelayMemtable(int id) {
     this->state = M0;

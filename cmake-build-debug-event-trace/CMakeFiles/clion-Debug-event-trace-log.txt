@@ -1,0 +1,4 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ --profiling-format=google-trace --profiling-output=CMakeFiles/clion-event-trace.json -G Ninja -S /Users/haena/Desktop/DIOL -B /Users/haena/Desktop/DIOL/cmake-build-debug-event-trace
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/haena/Desktop/DIOL/cmake-build-debug-event-trace

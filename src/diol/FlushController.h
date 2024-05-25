@@ -1,11 +1,12 @@
 #ifndef FLUSHCONTROLLER_H
 #define FLUSHCONTROLLER_H
 
-#include "DBManager.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include "IMemtable.h"
+#include "memtableController/ImmutableMemtableController.h"
 
 using namespace std;
 

@@ -5,13 +5,12 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <iostream>
 
-using namespace std;
-
-// TODO : 스레드
 class CompactionController {
 public:
     CompactionController() : running(false) {}
+
     // 시작 메소드
     void start() {
         running = true;
@@ -27,18 +26,17 @@ public:
     }
 
 private:
-    atomic<bool> running;
-    thread worker;
+    std::atomic<bool> running;
+    std::thread worker;
 
     IMemtable* findCompactionMem();
     void checkTimeOut();
     void run() {
         while (running) {
             checkTimeOut(); // checkTimeout 메소드 호출
-            this_thread::sleep_for(chrono::seconds(10)); // 5초마다 반복
+            std::this_thread::sleep_for(std::chrono::seconds(10)); // 10초마다 반복
         }
     }
 };
-
 
 #endif // COMPACTIONCONTROLLER_H
