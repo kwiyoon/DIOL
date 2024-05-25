@@ -15,11 +15,11 @@ public:
     NormalMemtable* activeNormalMemtable;
     DelayMemtable* activeDelayMemtable;
 
-    void insert(uint64_t key, int value);
+    bool insert(uint64_t key, int value);
     bool isDelayData(uint64_t key);
     bool insertData(IMemtable& memtable, uint64_t key, int value);
-    IMemtable* updateNormalMem(int id);
-    IMemtable* updateDelayMem(int id);
+    NormalMemtable* updateNormalMem(int id);
+    DelayMemtable* updateDelayMem(int id);
 private:
     ActiveMemtableController(){
         activeNormalMemtable = new NormalMemtable(0);

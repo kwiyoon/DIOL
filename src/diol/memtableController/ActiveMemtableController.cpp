@@ -1,12 +1,12 @@
 #include "ActiveMemtableController.h"
 #include "DBManager.h"
 
-void ActiveMemtableController::insert(uint64_t key, int value) {
+bool ActiveMemtableController::insert(uint64_t key, int value) {
     if(!isDelayData(key)) {
-        insertData(*activeNormalMemtable, key, value);
+        return insertData(*activeNormalMemtable, key, value);
     }
     else {
-        insertData(*activeDelayMemtable, key, value);
+        return insertData(*activeDelayMemtable, key, value);
     }
 }
 
