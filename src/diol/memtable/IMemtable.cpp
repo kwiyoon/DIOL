@@ -14,7 +14,7 @@ bool IMemtable::isFull(){
 }
 
 bool IMemtable::put(uint64_t key, int value){
-    return mem.insert(std::make_pair(key, value)).second;
+    return mem.insert({key, value}).second;
 }
 bool IMemtable::setState(State state){
     this->state = state;

@@ -13,10 +13,14 @@ public:
         static DBManager instance;
         return instance;
     }
+    ~DBManager(){
+        compactionController->stop();
+        flushController->stop();
+    }
     int currentId = 0;
     int getIdAndIncrement();
 
-    bool insert(uint64_t key, uint64_t value);
+    bool insert(uint64_t key, int value);
     int readData(uint64_t key);
     map<unsigned int, int> range(uint64_t start, uint64_t end);
 //    bool isFull(IMemtable& memtable);
@@ -25,9 +29,14 @@ private:
     DBManager(): activeMemtableController(ActiveMemtableController::getInstance()),
                  immMemtableController(ImmutableMemtableController::getInstance()){
         currentId = 0;
+        compactionController->start();
+        flushController->start();
     }
     DBManager(const DBManager&) = delete;
     void operator=(const DBManager&) = delete;
+
+    CompactionController* compactionController = new CompactionController();
+    FlushController* flushController = new FlushController();
 
     ActiveMemtableController& activeMemtableController;
     ImmutableMemtableController& immMemtableController;

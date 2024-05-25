@@ -2,6 +2,7 @@
 #define FLUSHCONTROLLER_H
 
 #include "DBManager.h"
+#include <iostream>
 #include <thread>
 #include <chrono>
 #include <atomic>
@@ -27,9 +28,14 @@ public:
         }
     }
 
+    ~FlushController() {
+        stop();
+    }
+
+
 private:
-    atomic<bool> running;
-    thread worker;
+    std::atomic<bool> running;
+    std::thread worker;
 
     IMemtable* findFlushMem(vector<IMemtable*>&);
     void checkTimeout();

@@ -1,7 +1,7 @@
 #include "ActiveMemtableController.h"
 #include "DBManager.h"
 
-void ActiveMemtableController::insert(unsigned int key, int value) {
+void ActiveMemtableController::insert(uint64_t key, int value) {
     if(!isDelayData(key)) {
         insertData(*activeNormalMemtable, key, value);
     }
@@ -10,7 +10,7 @@ void ActiveMemtableController::insert(unsigned int key, int value) {
     }
 }
 
-bool ActiveMemtableController::isDelayData(unsigned int key) {
+bool ActiveMemtableController::isDelayData(uint64_t key) {
     if(activeNormalMemtable->mem.empty()){
         return false;
     }else {

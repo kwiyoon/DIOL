@@ -15,8 +15,8 @@ public:
     NormalMemtable* activeNormalMemtable;
     DelayMemtable* activeDelayMemtable;
 
-    void insert(unsigned int key, int value);
-    bool isDelayData(unsigned int key);
+    void insert(uint64_t key, int value);
+    bool isDelayData(uint64_t key);
     bool insertData(IMemtable& memtable, uint64_t key, int value);
     IMemtable* updateNormalMem(int id);
     IMemtable* updateDelayMem(int id);
