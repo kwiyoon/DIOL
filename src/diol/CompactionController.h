@@ -34,7 +34,7 @@ private:
     void run() {
         while (running) {
             checkTimeOut(); // checkTimeout 메소드 호출
-            std::this_thread::sleep_for(std::chrono::seconds(10)); // 10초마다 반복
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // 1초마다 반복
         }
     }
 };

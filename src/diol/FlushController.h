@@ -43,7 +43,7 @@ private:
     void run() {
         while (running) {
             checkTimeout(); // checkTimeout 메소드 호출
-            this_thread::sleep_for(chrono::seconds(10)); // 10초마다 반복
+            this_thread::sleep_for(chrono::seconds(1)); // 1초마다 반복
         }
     }
 };
