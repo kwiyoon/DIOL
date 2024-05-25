@@ -47,8 +47,7 @@ public:
 class DelayMemtable : public IMemtable {
 public:
     DelayMemtable(int id);
-
-    size_t memtableSize = memtableSize/16; // Normal/4
+    size_t memtableSize = (4 * 1024)/16; // Normal/4
 };
 
 class NormalMemtable : public IMemtable {
