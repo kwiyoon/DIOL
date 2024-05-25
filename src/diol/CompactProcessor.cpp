@@ -25,11 +25,10 @@ DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtabl
             long cnt = checkTimeRange(memtable, delayMem);
 
             if(cnt > maxCnt){
+                maxCnt = cnt;
                 target = delayMem;
             }else if(cnt == maxCnt){
-                if(target->ttl < delayMem->ttl){
-
-                }
+                target =  (target->ttl < delayMem->ttl) ? target : delayMem;
             }
         }
     }
