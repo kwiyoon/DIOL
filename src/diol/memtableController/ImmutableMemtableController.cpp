@@ -55,17 +55,12 @@ map<uint64_t, int> ImmutableMemtableController::range(uint64_t start, uint64_t e
     return results;
 }
 
-int ImmutableMemtableController::getM1ListsSize(){
-    return normalImmMemtableList_M1.size() + delayImmMemtableList_M1.size();
-}
-
-int ImmutableMemtableController::getM2ListsSize(){
-    return normalImmMemtableList_M2.size() + delayImmMemtableList_M2.size();
-}
-
-void ImmutableMemtableController::putMemtableToQueue(IMemtable* memtable) {
-    if(LIMIT_SIZE_M1 == getM1ListsSize()){
+void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
+    if(LIMIT_SIZE_NORMAL_M1*0.8 <= normalImmMemtableList_M1.size()){
         compaction();
+    }
+    if(LIMIT_SIZE_DELAY_M1*0.8 <= delayImmMemtableList_M1.size()){
+        convertOldDelayToM2();
     }
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
         normalImmMemtableList_M1.push_back(normalPtr);
@@ -103,22 +98,38 @@ int ImmutableMemtableController::read(uint64_t key) {
 
 int ImmutableMemtableController::diskRead(uint64_t key){
 //    cout<<"reading Disk data~";
-    disk->readCount++;
+    disk.readCount++;
 
-    return disk->read(key);
+    return disk.read(key);
 }
 
 map<uint64_t, int> ImmutableMemtableController::diskRange(uint64_t start, uint64_t end){
 //    cout<<"ranging Disk datas~ ";
-    map<uint64_t, int> diskData = disk->range( start, end);
-    disk->readCount += diskData.size();
+    map<uint64_t, int> diskData = disk.range( start, end);
+    disk.readCount += diskData.size();
 
     return diskData;
 }
 
+void ImmutableMemtableController::convertOldDelayToM2(){
+    int min = std::numeric_limits<int>::max();
+    IMemtable* target = NULL;
+    for (const auto memtable : delayImmMemtableList_M1) {
+        if (memtable->ttl <= min) {
+            min = memtable->ttl;
+            target = memtable;
+        }
+    }
+    transformM1toM2(target);
+}
 
 void ImmutableMemtableController::compaction() {
-    // TODO : compactProcessor.compaction();
+    if(compactionQueue.empty()){
+        CompactionController compactionController;
+//        compactionController.start();
+        compactionController.checkTimeOut();
+    }
+
     IMemtable* normalMemtable = compactionQueue.front();
     IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
     compactionQueue.pop();
@@ -136,8 +147,7 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
 }
 
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
-    memtable->setState(M2);
-    memtable->initTTL();
+    memtable->initM2();
     if (NormalMemtable* normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
         erase(normalImmMemtableList_M1, normalPtr);
         normalImmMemtableList_M2.push_back(normalPtr);
