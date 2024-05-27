@@ -11,7 +11,7 @@ int MockDisk::read(uint64_t key) {
         // 맵에서 키 검색
         auto it = ss->rows.find(key);
         if (it != ss->rows.end()) {
-            cout<<"(found in normalSSTable:"<<ss->sstableId<<")";
+            LOG_STR("(found in normalSSTable:"+ to_string(ss->sstableId)+")");
             return it->second;  // 키를 찾았으면 값 반환
         }
     }
@@ -21,7 +21,7 @@ int MockDisk::read(uint64_t key) {
         // 맵에서 키 검색
         auto it = ss->rows.find(key);
         if (it != ss->rows.end()) {
-            cout<<"(found in delaySStale:"<<ss->sstableId<<")";
+            LOG_STR("(found in delaySStale:"+ to_string(ss->sstableId)+")");
             return it->second;  // 키를 찾았으면 값 반환
         }
     }
@@ -56,14 +56,14 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
     }
     // 로깅
     if(!normalSSTableIds.empty()) {
-        cout << "found in normalSSTables ";
-        for (auto id: normalSSTableIds) cout << id;
-        cout <<"\n";
+        LOG_ID("found in normalSSTables ");
+        for (auto id: normalSSTableIds) LOG_ID(id);
+        LOG_STR("");
     }
     if(!delaySSTableIds.empty()) {
-        cout<<"found in delaySSTables ";
-        for(auto id : delaySSTableIds) cout << id;
-        cout <<"\n";
+        LOG_ID("found in delaySSTables ");
+        for(auto id : delaySSTableIds) LOG_ID(id);
+        LOG_STR("");
     }
 
     return results;
@@ -107,13 +107,14 @@ bool MockDisk::flush(IMemtable* memtable) {
 
 void MockDisk::printSSTableList() {
 
-    cout<<"\n============NormalSSTable===========\n";
+    LOG_STR("\n============NormalSSTable===========\n");
     for(auto table: normalSSTables){
-        cout << "[ " << table->sstableId << " ]  key: " << table->startKey << " ~ " << table->lastKey << " | #cnt: " << table->rows.size() << "\n";
+        LOG_STR("[ " + to_string(table->sstableId)+ " ]  key: " +to_string(table->startKey)+ " ~ " + to_string(table->lastKey) + " | #cnt: " +to_string(table->rows.size()));
     }
-    cout<<"\n============DelaySSTable===========\n";
+    LOG_STR("\n============DelaySSTable===========\n");
+
     for(auto table: delaySSTables){
-        cout << "[ " << table->sstableId << " ]  key: " << table->startKey << " ~ " << table->lastKey << " | #cnt: " << table->rows.size() << "\n";
+        LOG_STR("[ " + to_string(table->sstableId)+ " ]  key: " +to_string(table->startKey)+ " ~ " + to_string(table->lastKey) + " | #cnt: " +to_string(table->rows.size()));
     }
 
 }

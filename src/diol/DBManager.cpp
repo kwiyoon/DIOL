@@ -45,19 +45,12 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
     };
 
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
-        cout<<normalPtr->memtableId<<"가 transformM0ToM1 중입니다"<<endl;
-
         immutableController.decreaseTTL();
         updateKeys(normalPtr);
         normalPtr->setDelayCount(DelayDetector::detect(normalPtr));
-
-        cout<<normalPtr->startKey<<"~";
-        cout<<normalPtr->lastKey<<endl;
         return activeController.updateNormalMem(getIdAndIncrement());
     } else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
         updateKeys(delayPtr);
-        cout<<"im delay "<<delayPtr->memtableId<<"가 transformM0ToM1 중입니다 :";
-        cout<<delayPtr->startKey<<"~"<<delayPtr->lastKey<<endl;
         return activeController.updateDelayMem(getIdAndIncrement());
     }else
         throw logic_error("DBManager::transformM0ToM1 주소비교.. 뭔가 문제가 있는 듯 하오.");
