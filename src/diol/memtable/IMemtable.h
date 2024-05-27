@@ -3,6 +3,8 @@
 
 #include <map>
 
+using namespace std;
+
 enum State{
     /** ACTIVE */
     M0,
@@ -37,7 +39,7 @@ enum MemTableStatus {
 // Abstract class for memtables
 class IMemtable {
 public:
-    std::map<uint64_t, int> mem;
+    unordered_map<uint64_t, int> mem;
     State state;
     MemTableStatus memTableStatus;
     uint64_t startKey;
