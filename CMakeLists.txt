@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.26.4)
+cmake_minimum_required(VERSION 3.10)  # CMake 버전 3.10 이상 필요
 project(DIOL)
 
-# Set C++11 standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)  # C++17 표준 사용
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find the Threads package

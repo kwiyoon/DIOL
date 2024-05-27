@@ -317,7 +317,7 @@ void DataFactory::generateWorkloadDataset(vector<Record>& initDataSet, string& w
         completedWorkCount++;
 
         /**진행률 출력*/
-        if (completedWorkCount % (totalWorkCount / 100) == 0) {
+        if (completedWorkCount % (totalWorkCount / 5) == 0) {
             INT_LOG_PROGRESS(completedWorkCount, totalWorkCount);
         }
     }
@@ -326,10 +326,10 @@ void DataFactory::generateWorkloadDataset(vector<Record>& initDataSet, string& w
     std::string filePath;
     if(singleReadProportion == 0.5) {
         filePath = "../src/test/dataset/"+workloadDataName+"_i" + to_string_with_precision(insertProportion, 1) +
-                   "_i" + to_string_with_precision(readProportion, 1) + "_V1.txt";
+                   "_r" + to_string_with_precision(readProportion, 1) + "_V1.txt";
     } else {
-        filePath = "../src/test/dataset/"+workloadDataName+"_r"+ to_string_with_precision(readProportion, 1) +
-                   "_i" + to_string_with_precision(insertProportion, 1) + "_V2.txt";
+        filePath = "../src/test/dataset/"+workloadDataName+"_i" + to_string_with_precision(insertProportion, 1) +"_r"+ to_string_with_precision(readProportion, 1) +
+                    "_V2.txt";
     }
     writeToWorkloadFile(filePath, dataset);
 
