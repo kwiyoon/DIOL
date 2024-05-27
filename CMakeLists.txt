@@ -32,6 +32,7 @@ add_executable(DIOL
         src/diol/DelayDetector.cpp
         src/diol/MockDisk.cpp
         src/diol/SSTable.cpp
+        src/test/VectorTest.cpp
 )
 
 
