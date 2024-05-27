@@ -112,6 +112,7 @@ map<uint64_t, int> ImmutableMemtableController::diskRange(uint64_t start, uint64
 }
 
 void ImmutableMemtableController::convertOldDelayToM2(){
+    LOG_STR("ImmutableMemtableController::convertOldDelayToM2()");
     int min = std::numeric_limits<int>::max();
     IMemtable* target = NULL;
     for (const auto memtable : delayImmMemtableList_M1) {
@@ -126,19 +127,25 @@ void ImmutableMemtableController::convertOldDelayToM2(){
 void ImmutableMemtableController::compaction() {
     if(compactionQueue.empty()){
         CompactionController compactionController;
-        compactionController.start();
 //        compactionController.checkTimeOut();
+        compactionController.start();
+        compactionController.waitForCompletion();
+        compactionController.stop();
+        LOG_STR("start까지 ㄱㅊ");
     }
 
     IMemtable* normalMemtable = compactionQueue.front();
+    LOG_STR("normalMemtable id: " + to_string(normalMemtable->memtableId));
+
 
     if(!delayImmMemtableList_M1.empty()){
         IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
-
         transformM1toM2(delaymemtable);
     }
     transformM1toM2(normalMemtable);
     compactionQueue.pop();
+    LOG_STR("ImmutableMemtableController::compaction 끝!");
+
 }
 
 void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtable){
@@ -148,6 +155,7 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
             it = v.erase(it);
         } else it++;
     }
+    LOG_STR("erase 잘돼요");
 }
 
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {

@@ -9,8 +9,10 @@
 #include <queue>
 
 
-#define LOG_ID(int) \
-//    cout<<"(found in id:"<<imm->memtableId<<")\n";
+#define LOG_STR(str) \
+    cout<<str<<endl;
+
+#define LOG_ID(id) \
 
 using namespace std;
 

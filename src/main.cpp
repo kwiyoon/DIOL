@@ -17,10 +17,12 @@ int main() {
     DBManager& tree = DBManager::getInstance();
     int num = 1000;
     for(int i=1;i<num;i++){
+        cout<<"insert "<<i<<endl;
         tree.insert(i,i*2);
     }
 
     for(int i=num+20;i<num*3;i++){
+        cout<<"insert "<<i<<endl;
         tree.insert(i,i*2);
     }
 
