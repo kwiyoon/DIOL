@@ -4,8 +4,10 @@
 #include <map>
 
 enum State{
-    M0,         // ACTIVE
-    M1, M2      // IMM
+    /** ACTIVE */
+    M0,
+    /** IMMUTABLE */
+    M1, M2
 };
 //
 //// TODO (new) : refactor
@@ -14,17 +16,38 @@ enum State{
 //    D   // Delay
 //};
 
+
+enum MemTableStatus {
+    /** MemTable is still working (State = M0)*/
+    WORKING,
+    /** in M1 LIST*/
+    IMMUTABLE,
+    /** Compaction을 기다리는 상태 */
+    WAITING_FOR_COMPACT,
+    /** MemTable compaction is in progress */
+    COMPACTING,
+    /** MemTable compaction has been completed (M2) */
+    COMPACTED,
+    /** MemTable is waiting to be flushed */
+    WAITING_FOR_FLUSH,
+    /** MemTable flush is flushing (Flush Queue yet)*/
+    FLUSHING,
+    /** MemTable flush has been flushed */
+    FLUSHED
+};
+
+
 // Abstract class for memtables
 class IMemtable {
 public:
     std::map<uint64_t, int> mem;
     State state;
+    MemTableStatus memTableStatus;
     uint64_t startKey;
     uint64_t lastKey;
 //    size_t memtableSize = 16 * 1024 * 1024;
     size_t memtableSize = 4 * 1024; // delay_size * 4 = normal_size
     int memtableId;
-
     int access = 0;     // IMM만 사용
     int ttl;       // IMM만 사용
 //    static const int STEP1_TTL = INIT_TTL/2;
@@ -37,7 +60,8 @@ public:
     bool isFull();
     size_t getSize();
 
-    bool initM1();
+    void initM1();
+    void initM2();
     bool setState(State state);
     bool setStartKey(uint64_t key);
     bool setLastKey(uint64_t key);

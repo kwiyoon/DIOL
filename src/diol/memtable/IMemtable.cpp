@@ -26,11 +26,6 @@ bool IMemtable::setStartKey(uint64_t key){
     return true;
 }
 bool IMemtable::setLastKey(uint64_t key){
-//    if (!mem.empty()) {
-//        lastKey = (--mem.end())->first;
-//    } else {
-//        lastKey = 0; // Or any other default value to indicate an empty memtable
-//    }
     this->lastKey=key;
     return true;
 }
@@ -44,10 +39,17 @@ void IMemtable::initTTL() {
     }
 }
 
-bool IMemtable::initM1() {
+void IMemtable::initM1() {
+    this->memTableStatus = IMMUTABLE;
     this->setState(M1);
     this->setStartKey(this->mem.begin()->first);
     this->setLastKey(this->mem.rbegin()->first);
+    this->initTTL();
+}
+
+void IMemtable::initM2() {
+    this->memTableStatus = COMPACTED;
+    this->setState(M2);
     this->initTTL();
 }
 
