@@ -32,39 +32,51 @@ int MockDisk::read(uint64_t key) {
 
 map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 
-    // 로깅
-    list<string> normalSSTableIds;
-    list<string> delaySSTableIds;
+//    // 로깅
+//    list<string> normalSSTableIds;
+//    list<string> delaySSTableIds;
 
     map<uint64_t, int> results;
-    bool flag;
+//    bool flag;
     for (auto ss : normalSSTables) {
-        flag = false;
-        for (auto it = ss->rows.lower_bound(start); it != ss->rows.end() && it->first <= end; ++it) {
-            flag = true;
+//        flag = false;
+        if(ss->startKey < start || ss->lastKey > end)
+            continue;
+
+        auto itStart = ss->rows.lower_bound(start); // start 이상의 첫 번째 요소를 찾음
+        auto itEnd = ss->rows.upper_bound(end);     // end 이하의 마지막 요소의 다음 요소를 찾음
+
+        for (auto it = itStart; it != itEnd; ++it) {
             results[it->first] = it->second;
+//          flag = true;
         }
-        if(flag) normalSSTableIds.push_back("("+to_string(ss->sstableId)+")");
+//        if(flag) normalSSTableIds.push_back("("+to_string(ss->sstableId)+")");
     }
     for (auto ss : delaySSTables) {
-        flag = false;
-        for (auto it = ss->rows.lower_bound(start); it != ss->rows.end() && it->first <= end; ++it) {
-            flag = true;
+//        flag = false;
+        if(ss->startKey < start || ss->lastKey > end)
+            continue;
+        
+        auto itStart = ss->rows.lower_bound(start); // start 이상의 첫 번째 요소를 찾음
+        auto itEnd = ss->rows.upper_bound(end);     // end 이하의 마지막 요소의 다음 요소를 찾음
+
+        for (auto it = itStart; it != itEnd; ++it) {
             results[it->first] = it->second;
+//            flag = true;
         }
-        if(flag) delaySSTableIds.push_back("("+to_string(ss->sstableId)+")");
+//        if(flag) delaySSTableIds.push_back("("+to_string(ss->sstableId)+")");
     }
     // 로깅
-    if(!normalSSTableIds.empty()) {
-        LOG_ID("found in normalSSTables ");
-        for (auto id: normalSSTableIds) LOG_ID(id);
-        LOG_STR("");
-    }
-    if(!delaySSTableIds.empty()) {
-        LOG_ID("found in delaySSTables ");
-        for(auto id : delaySSTableIds) LOG_ID(id);
-        LOG_STR("");
-    }
+//    if(!normalSSTableIds.empty()) {
+//        LOG_ID("found in normalSSTables ");
+//        for (auto id: normalSSTableIds) LOG_ID(id);
+//        LOG_STR("");
+//    }
+//    if(!delaySSTableIds.empty()) {
+//        LOG_ID("found in delaySSTables ");
+//        for(auto id : delaySSTableIds) LOG_ID(id);
+//        LOG_STR("");
+//    }
 
     return results;
 }
@@ -72,24 +84,12 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 bool MockDisk::flush(IMemtable* memtable) {
     SSTable* newSSTable = new SSTable(memtable->memtableId);
 
-    uint64_t minKey = std::numeric_limits<uint64_t>::max();
-    uint64_t maxKey = std::numeric_limits<uint64_t>::min();
-
     for (const auto& entry : memtable->mem) {
         newSSTable->put(entry.first, entry.second);
-        if (entry.first < minKey) {
-            minKey = entry.first;
-        }
-        if (entry.first > maxKey) {
-            maxKey = entry.first;
-        }
     }
-    if (minKey != std::numeric_limits<uint64_t>::max()) {
-        newSSTable->setStartKey(minKey);
-    }
-    if (maxKey != std::numeric_limits<uint64_t>::min()) {
-        newSSTable->setLastKey(maxKey);
-    }
+
+    newSSTable->setStartKey(newSSTable->rows.begin()->first);
+    newSSTable->setLastKey(newSSTable->rows.rbegin()->first);
 
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)) {
         newSSTable->setType(N);

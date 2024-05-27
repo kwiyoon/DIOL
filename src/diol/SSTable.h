@@ -13,7 +13,7 @@ enum Type {
 
 struct SSTable {
 public:
-    std::map<uint64_t, int> rows;
+    map<uint64_t, int> rows;
     Type type;
     uint64_t startKey;
     uint64_t lastKey;

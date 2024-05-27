@@ -84,7 +84,7 @@ void CompactionTest::compactSSTables() {
             outputFile << pair.first << "\t" << pair.second << "\n";
         }
         outputFile.close();
-        std::cout << "Data written to " << filename << std::endl;
+//        std::cout << "Data written to " << filename << std::endl;
     }
 }
 
@@ -96,7 +96,7 @@ void CompactionTest::runCompaction(){
 
     std::chrono::duration<double, std::milli> elapsed = end - start;
 
-    std::cout << "Compaction test : " << elapsed.count() << " ms\n";
+//    std::cout << "Compaction test : " << elapsed.count() << " ms\n";
 
     return;
 }

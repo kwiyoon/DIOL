@@ -1,22 +1,26 @@
 #include "ImmutableMemtableController.h"
 #include "FlushController.h"
 
-// 로깅 ====
-list<string> ids;
-bool flag;
-// ======
+//// 로깅 ====
+//list<string> ids;
+//bool flag;
+//// ======
 
-map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v){
+map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v, Type t){
     map<uint64_t, int> segment;
 
-    for (auto imm : normalImmMemtableList_M1) {
+    for (auto imm : v) {
+        if(t == N && (imm->startKey < start || imm->lastKey > end))
+            continue;
         imm->memTableStatus = READING;
-        flag = false;
-        for (auto it = imm->mem.lower_bound(start); it != imm->mem.end() && it->first <= end; ++it) {
-            segment[it->first] = it->second;
-            flag = true;
+//        flag = false;
+        for(const auto& entry : imm->mem){
+            if(entry.first>=start && entry.first <= end){
+                segment[entry.first] = entry.second;
+//                flag = true;
+            }
         }
-        if(flag) ids.push_back("("+to_string(imm->memtableId)+")");
+//        if(flag) ids.push_back("("+to_string(imm->memtableId)+")");
         imm->memTableStatus = IMMUTABLE;
     }
 
@@ -24,20 +28,20 @@ map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, ui
 }
 
 map<uint64_t, int> ImmutableMemtableController::range(uint64_t start, uint64_t end) {
-    ids.clear();
-    flag = false;
+//    ids.clear();
+//    flag = false;
 
-    map<uint64_t, int> results = rangeInVector(start, end, normalImmMemtableList_M1);
-    map<uint64_t, int> segment = rangeInVector(start, end, normalImmMemtableList_M2);
+    map<uint64_t, int> results = rangeInVector(start, end, normalImmMemtableList_M1, N);
+    map<uint64_t, int> segment = rangeInVector(start, end, normalImmMemtableList_M2, N);
     results.insert(segment.begin(), segment.end());
 
-    segment = rangeInVector(start, end, delayImmMemtableList_M1);
+    segment = rangeInVector(start, end, delayImmMemtableList_M1, D);
     results.insert(segment.begin(), segment.end());
 
-    segment = rangeInVector(start, end, delayImmMemtableList_M2);
+    segment = rangeInVector(start, end, delayImmMemtableList_M2, D);
     results.insert(segment.begin(), segment.end());
 
-    // 만약 start 범위가 disk일 가능성이 있을때
+    // 만약 start 범위가 disk일 가능성이 있다면?
     map<uint64_t, int> diskData;
 
     if(results.empty() || start < results.begin()->first || end > results.rbegin()->first){

@@ -14,7 +14,7 @@ vector<Record> Workload::readFile(const string& filePath) {
     string line;
     int lineCount = 0; // 현재까지 읽은 줄 수를 추적하기 위한 변수
 
-    cout<<filePath<<" 읽어오기 시작\n";
+//    cout<<filePath<<" 읽어오기 시작\n";
     while (getline(file, line)) {
         istringstream iss(line);
         string op;
@@ -44,18 +44,18 @@ vector<Record> Workload::readFile(const string& filePath) {
             cerr << "ERR: 잘못된 형식의 레코드입니다: " << line << endl;
         }
         /**진행률 출력 (전체 크기 기준으로 출력하기 어려우므로 임의의 기준으로 출력)*/
-        ++lineCount;
-        if (lineCount % 5000000 == 0){
-            cout<<lineCount<<"개 읽음\n";
-        }
+//        ++lineCount;
+//        if (lineCount % 5000000 == 0){
+//            cout<<lineCount<<"개 읽음\n";
+//        }
     }
-    cout<<filePath<<" 읽어오기 끝\n";
+//    cout<<filePath<<" 읽어오기 끝\n";
 
     file.close();
     return dataset;
 }
 void Workload::executeInsertWorkload(vector<Record>& dataset, int start, int end) {
-    cout << "Workload Insert 작업 실행 시작\n";
+//    cout << "Workload Insert 작업 실행 시작\n";
     for (int i = start; i <= end; ++i) {
         if (dataset[i].op == "INSERT") {
             tree.insert(dataset[i].key, dataset[i].key * 2);
@@ -64,15 +64,15 @@ void Workload::executeInsertWorkload(vector<Record>& dataset, int start, int end
             return;
         }
         /**진행률 출력*/
-        if (i != 0 && i % (end / 100) == 0) {
+        if (i != 0 && i % (end / 5) == 0) {
             INT_LOG_PROGRESS(i, end);
         }
     }
-    cout << "Workload Insert 작업 실행 끝\n";
+//    cout << "Workload Insert 작업 실행 끝\n";
 }
 
 void Workload::executeMixedWorkload(vector<Record>& dataset, int start, int end) {
-    cout << "Workload Mixed 작업 실행 시작\n";
+//    cout << "Workload Mixed 작업 실행 시작\n";
     for (int i = start; i < end; ++i) {
         if (dataset[i].op == "READ") {
             tree.readData(dataset[i].key);
@@ -86,24 +86,24 @@ void Workload::executeMixedWorkload(vector<Record>& dataset, int start, int end)
         }
         /** 진행률 출력 */
         int currentProgress = i - start + 1;
-        if (currentProgress != 0 && i % ((end-start) / 100) == 0) {
+        if (currentProgress != 0 && i % ((end-start) / 5) == 0) {
             INT_LOG_PROGRESS(currentProgress, (end-start));
         }
 
 
     }
-    cout << "Workload Mixed 작업 실행 끝\n";
+//    cout << "Workload Mixed 작업 실행 끝\n";
 }
 
 void Workload::executeWorkload(vector<Record>& dataset, int initDataNum) {
-    cout << "workload 실행 시작\n";
+//    cout << "workload 실행 시작\n";
 
     executeInsertWorkload(dataset, 0, initDataNum/2);
     auto start = chrono::high_resolution_clock::now();
     executeMixedWorkload(dataset, initDataNum/2+1, dataset.size());
     auto end = chrono::high_resolution_clock::now();
 
-    cout << "workload 실행 끝\n";
+//    cout << "workload 실행 끝\n";
 
     chrono::duration<double, milli> elapsed = end - start;
     cout << "Workload 실행 시간: " << elapsed.count() << " ms" << endl;
