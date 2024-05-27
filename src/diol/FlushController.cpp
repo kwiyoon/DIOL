@@ -43,17 +43,24 @@ void FlushController::checkTimeout(Type t) {
     }
     if (!timeoutFound) {
         // 타임아웃된 Memtable이 없을 경우 access count가 가장 적은 Memtable을 찾아 queue에 삽입
-        IMemtable* normalMem = findMemtableWithMinAccess(imm.normalImmMemtableList_M2);
-        IMemtable* delayMem = findMemtableWithMinAccess(imm.delayImmMemtableList_M2);
-        if(normalMem != NULL) {
-            cout<<"flushQueue.push\n";
-            imm.flushQueue.push(normalMem);
-            imm.erase(imm.normalImmMemtableList_M2, normalMem);
+        if(t==N){
+            IMemtable* normalMem = findMemtableWithMinAccess(imm.normalImmMemtableList_M2);
+            if(normalMem != NULL) {
+                LOG_STR("3  flushQueue.push\n");
+                imm.flushQueue.push(normalMem);
+//                printFlushQueue(imm);
+                imm.erase(imm.normalImmMemtableList_M2, normalMem);
+            }
         }
-        if(delayMem != NULL) {
-            cout<<"flushQueue.push\n";
-            imm.flushQueue.push(delayMem);
-            imm.erase(imm.delayImmMemtableList_M2, normalMem);
+        else if(t == D) {
+            IMemtable *delayMem = findMemtableWithMinAccess(imm.delayImmMemtableList_M2);
+
+            if (delayMem != NULL) {
+                LOG_STR("4  flushQueue.push\n");
+                imm.flushQueue.push(delayMem);
+//                printFlushQueue(imm);
+                imm.erase(imm.delayImmMemtableList_M2, delayMem);
+            }
         }
     }
 }
