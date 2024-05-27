@@ -15,7 +15,6 @@ using namespace std;
 class CompactProcessor {
 public:
     DelayMemtable* compaction(IMemtable* memtable, vector<IMemtable*>& delayMemtables);
-
     IMemtable* findTargetMem(IMemtable *memtable, vector<IMemtable *> &delayMemtables);
 };
 

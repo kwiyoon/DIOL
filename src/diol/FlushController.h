@@ -5,34 +5,40 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
-#include "IMemtable.h"
+#include "memtable/IMemtable.h"
 #include "memtableController/ImmutableMemtableController.h"
 #include "MockDisk.h"
 
 using namespace std;
 
-// TODO : 스레드
 class FlushController {
 public:
     FlushController() : running(false), disk(MockDisk::getInstance()),
-                        immMemtableController(ImmutableMemtableController::getInstance()) {}
+//                        immMemtableController(ImmutableMemtableController::getInstance()),
+                        taskCompleted(false) {}
 
     // 시작 메소드
-    void start() {
+    void start(Type t) {
         running = true;
-        timeout_thread = std::thread(&FlushController::checkTimeoutLoop, this);
-        flush_thread = std::thread(&FlushController::doFlushLoop, this);
+        worker = std::thread(&FlushController::run, this, t);
+//        flush_thread = std::thread(&FlushController::doFlush, this);
     }
 
     // 중지 메소드
     void stop() {
         running = false;
-        if (timeout_thread.joinable()) {
-            timeout_thread.join();
+        if (worker.joinable()) {
+            worker.join();
         }
-        if (flush_thread.joinable()) {
-            flush_thread.join();
-        }
+//        if (flush_thread.joinable()) {
+//            flush_thread.join();
+//        }
+    }
+
+    // 작업 완료를 대기
+    void waitForCompletion() {
+        std::unique_lock<std::mutex> lock(mutex);
+        condition.wait(lock, [this] { return taskCompleted; });
     }
 
     ~FlushController() {
@@ -42,41 +48,35 @@ public:
 
 private:
     std::atomic<bool> running;
-    std::thread timeout_thread;
-    std::thread flush_thread;
-    ImmutableMemtableController& immMemtableController;
-    mutex mtx;
+    std::thread worker;
+//    ImmutableMemtableController& immMemtableController;
+    std::condition_variable condition;
+    bool taskCompleted;
+    mutex mutex;
     MockDisk& disk;
 
-    IMemtable* findFlushMem(vector<IMemtable*>&);
-    void checkTimeout();
+    IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
+    void checkTimeout(Type t);
 
-    void checkTimeoutLoop() {
-        while (running) {
-            checkTimeout();
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+    void run(Type t){
+//        if(immMemtableController.flushQueue.empty())
+//            checkTimeout(t);
+//        doFlush();
+//        {
+//            std::lock_guard<std::mutex> lock(mutex);
+//            taskCompleted = true;
+//        }
+//        condition.notify_all();
+
     }
 
-    void doFlushLoop() {
-        while (running) {
-            std::unique_lock<std::mutex> lock(mtx);
-            cout<<"FlushController::doFlushLoop\n";
-            if (immMemtableController.flushQueue.empty() && !running) {
-                break;
-            }
-
-            if (!immMemtableController.flushQueue.empty()) {
-                cout<<"FlushController::doFlushLoop - notEmpty\n";
-
-                IMemtable *memtable = immMemtableController.flushQueue.front();
-                immMemtableController.flushQueue.pop();
-                lock.unlock();
-
-                disk.flush(memtable);
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+    void doFlush() {
+//        if (!immMemtableController.flushQueue.empty()) {
+//            IMemtable *memtable = immMemtableController.flushQueue.front();
+//            immMemtableController.flushQueue.pop();
+//            disk.flush(memtable);
+//            delete memtable;
+//        }
     }
 };
 

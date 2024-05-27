@@ -163,6 +163,16 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
 }
 
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
+//    FlushController flushController;
+//    if(LIMIT_SIZE_NORMAL_M2*0.8 <= normalImmMemtableList_M2.size()){
+//        flushController.start(N);
+//    }
+//    if(LIMIT_SIZE_DELAY_M2*0.8 <= delayImmMemtableList_M2.size()){
+//        flushController.start(D);
+//    }
+//
+//    flushController.waitForCompletion();
+//    flushController.stop();
     memtable->initM2();
     if (NormalMemtable* normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
         erase(normalImmMemtableList_M1, normalPtr);
