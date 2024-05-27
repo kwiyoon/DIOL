@@ -44,7 +44,7 @@ private:
     std::condition_variable condition;
     bool taskCompleted;
 
-    IMemtable* findCompactionMem();
+    IMemtable* findMemtableWithMinDelay();
     void run() {
         checkTimeOut(); // checkTimeout 메소드 호출
         {
