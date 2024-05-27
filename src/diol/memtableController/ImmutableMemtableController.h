@@ -30,12 +30,11 @@ public:
     queue<IMemtable*> compactionQueue;
     queue<IMemtable*> flushQueue;
     CompactProcessor* compactProcessor;
+    MockDisk& disk;
 
     int normalMemtableNum_M1 = 2;
     int delayMemtableNum_M1 = normalMemtableNum_M1 * 2;
     int read(uint64_t key);
-    
-    MockDisk* disk;
     map<uint64_t, int> range(uint64_t start, uint64_t end);
     bool isNormalMemsFull();
     bool isDelayMemsFull();
@@ -44,9 +43,8 @@ public:
     void erase(vector<IMemtable*>& v, IMemtable* memtable);
     void transformM1toM2(IMemtable*);
 private:
-    ImmutableMemtableController(){
+    ImmutableMemtableController() : disk(MockDisk::getInstance()) {
         compactProcessor = new CompactProcessor();
-        disk = new MockDisk();
     }
 
     ImmutableMemtableController(const ImmutableMemtableController&) = delete;
