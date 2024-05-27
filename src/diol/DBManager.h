@@ -35,6 +35,7 @@ private:
         getIdAndIncrement();
 //        compactionController->start();
 //        flushController->start();
+        immMemtableController.setFlushController(new FlushController(immMemtableController));
     }
     DBManager(const DBManager&) = delete;
     void operator=(const DBManager&) = delete;
