@@ -126,8 +126,8 @@ void ImmutableMemtableController::convertOldDelayToM2(){
 void ImmutableMemtableController::compaction() {
     if(compactionQueue.empty()){
         CompactionController compactionController;
-//        compactionController.start();
-        compactionController.checkTimeOut();
+        compactionController.start();
+//        compactionController.checkTimeOut();
     }
 
     IMemtable* normalMemtable = compactionQueue.front();
