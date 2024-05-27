@@ -17,8 +17,25 @@ long checkTimeRange(IMemtable* memtable, IMemtable* delayMemtable){
     return cnt;
 }
 
-// Delay Memtable에서 내부적으로 시간이 겹치는 data들을 찾아 부분 compaction을 진행한다.
+/** Delay Memtable에서 내부적으로 시간이 겹치는 data들을 찾아 부분 compaction을 진행한다. */
 DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
+    IMemtable* delayTable = findTargetMem(memtable, delayMemtables);
+    memtable->memTableStatus = COMPACTING;
+    if(delayTable!=NULL)
+        delayTable->memTableStatus = COMPACTING;
+
+    for(auto it = delayTable->mem.begin(); it!= delayTable->mem.end();){
+        uint64_t delayKey = it->first;
+        if(delayKey >= memtable->startKey && delayKey <= memtable->lastKey){
+            memtable->mem.insert({it->first, it->second});
+            it = delayTable->mem.erase(it);
+        }else{
+            ++it;
+        }
+    }
+    return dynamic_cast<DelayMemtable*>(delayTable);
+}
+
 /** compaction을 진행할 DelayMemtable을 찾는다. */
 IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
     ImmutableMemtableController& immutableMemtableController = ImmutableMemtableController::getInstance();
