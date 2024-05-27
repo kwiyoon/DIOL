@@ -72,24 +72,12 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 bool MockDisk::flush(IMemtable* memtable) {
     SSTable* newSSTable = new SSTable(memtable->memtableId);
 
-    uint64_t minKey = std::numeric_limits<uint64_t>::max();
-    uint64_t maxKey = std::numeric_limits<uint64_t>::min();
-
     for (const auto& entry : memtable->mem) {
         newSSTable->put(entry.first, entry.second);
-        if (entry.first < minKey) {
-            minKey = entry.first;
-        }
-        if (entry.first > maxKey) {
-            maxKey = entry.first;
-        }
     }
-    if (minKey != std::numeric_limits<uint64_t>::max()) {
-        newSSTable->setStartKey(minKey);
-    }
-    if (maxKey != std::numeric_limits<uint64_t>::min()) {
-        newSSTable->setLastKey(maxKey);
-    }
+
+    newSSTable->setStartKey(newSSTable->rows.begin()->first);
+    newSSTable->setLastKey(newSSTable->rows.rbegin()->first);
 
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)) {
         newSSTable->setType(N);
