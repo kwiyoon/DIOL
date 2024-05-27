@@ -32,39 +32,39 @@ int MockDisk::read(uint64_t key) {
 
 map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 
-    // 로깅
-    list<string> normalSSTableIds;
-    list<string> delaySSTableIds;
+//    // 로깅
+//    list<string> normalSSTableIds;
+//    list<string> delaySSTableIds;
 
     map<uint64_t, int> results;
-    bool flag;
+//    bool flag;
     for (auto ss : normalSSTables) {
-        flag = false;
         for (auto it = ss->rows.lower_bound(start); it != ss->rows.end() && it->first <= end; ++it) {
-            flag = true;
+//        flag = false;
             results[it->first] = it->second;
+//          flag = true;
         }
-        if(flag) normalSSTableIds.push_back("("+to_string(ss->sstableId)+")");
+//        if(flag) normalSSTableIds.push_back("("+to_string(ss->sstableId)+")");
     }
     for (auto ss : delaySSTables) {
-        flag = false;
         for (auto it = ss->rows.lower_bound(start); it != ss->rows.end() && it->first <= end; ++it) {
-            flag = true;
+//        flag = false;
             results[it->first] = it->second;
+//            flag = true;
         }
-        if(flag) delaySSTableIds.push_back("("+to_string(ss->sstableId)+")");
+//        if(flag) delaySSTableIds.push_back("("+to_string(ss->sstableId)+")");
     }
     // 로깅
-    if(!normalSSTableIds.empty()) {
-        LOG_ID("found in normalSSTables ");
-        for (auto id: normalSSTableIds) LOG_ID(id);
-        LOG_STR("");
-    }
-    if(!delaySSTableIds.empty()) {
-        LOG_ID("found in delaySSTables ");
-        for(auto id : delaySSTableIds) LOG_ID(id);
-        LOG_STR("");
-    }
+//    if(!normalSSTableIds.empty()) {
+//        LOG_ID("found in normalSSTables ");
+//        for (auto id: normalSSTableIds) LOG_ID(id);
+//        LOG_STR("");
+//    }
+//    if(!delaySSTableIds.empty()) {
+//        LOG_ID("found in delaySSTables ");
+//        for(auto id : delaySSTableIds) LOG_ID(id);
+//        LOG_STR("");
+//    }
 
     return results;
 }
