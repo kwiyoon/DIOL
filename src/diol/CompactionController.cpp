@@ -1,14 +1,14 @@
 #include "CompactionController.h"
 #include "memtableController/ImmutableMemtableController.h"
-//#include "stddef.h"
 
-// TODO (new) : queue에 넣으면 ImmList에선 빼? ㅇㅇ
 void CompactionController::checkTimeOut() {
+    cout<<"CompactionController::checkTimeOut()\n";
     ImmutableMemtableController& immController = ImmutableMemtableController::getInstance();
     bool timeoutFound = false;
     if(!immController.normalImmMemtableList_M1.empty()){
         for (const auto memtable : immController.normalImmMemtableList_M1) {
             if (memtable->ttl == 0) {
+                cout<<"compactionQueue.push - timeout\n";
                 immController.compactionQueue.push(memtable);
                 immController.erase(immController.normalImmMemtableList_M1, memtable);
                 timeoutFound = true;
@@ -16,14 +16,15 @@ void CompactionController::checkTimeOut() {
         }
     }
 
-    /** timeoutFound = true라면, 가장 많이 겹치는 delay 찾아서 컴팩션 해야함.
-        TODO (new) : ㄴ> 이건 compaction proccess 시 거기서 이루어질 것.
-    */
     if (!timeoutFound) {
         // 타임아웃된 Memtable이 없을 경우 가장 delay 추정치가 적은 Memtable을 찾아 queue에 삽입
         IMemtable* minDelayMemtable = findCompactionMem();
         if(minDelayMemtable != NULL) {
+            cout<<"compactionQueue.push - least delay\n";
+            cout<<"immController.compactionQueue.size(): "<<immController.compactionQueue.size()<<endl;
             immController.compactionQueue.push(minDelayMemtable);
+            cout<<"immController.compactionQueue.size(): "<<immController.compactionQueue.size()<<endl;
+
             immController.erase(immController.normalImmMemtableList_M1, minDelayMemtable);
         }
     }
@@ -33,7 +34,6 @@ void CompactionController::checkTimeOut() {
 IMemtable* CompactionController::findCompactionMem() {
     ImmutableMemtableController& immContoller = ImmutableMemtableController::getInstance();
 
-    // TODO : 수정
     int minDelay = INT_MAX;
     IMemtable* imm = NULL;
     if(!immContoller.normalImmMemtableList_M1.empty()) {
