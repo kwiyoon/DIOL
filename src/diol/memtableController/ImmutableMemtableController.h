@@ -4,12 +4,13 @@
 #include "../memtable/IMemtable.h"
 #include "../CompactProcessor.h"
 #include "../MockDisk.h"
+#include "../CompactionController.h"
 #include <iostream>
 #include <queue>
 
 
 #define LOG_ID(int) \
-    cout<<"(found in id:"<<imm->memtableId<<")\n";
+//    cout<<"(found in id:"<<imm->memtableId<<")\n";
 
 using namespace std;
 
@@ -39,7 +40,7 @@ public:
 
     int read(uint64_t key);
     map<uint64_t, int> range(uint64_t start, uint64_t end);
-    void putMemtableToQueue(IMemtable*);
+    void putMemtableToM1List(IMemtable*);
     void decreaseTTL();
     void erase(vector<IMemtable*>& v, IMemtable* memtable);
     void transformM1toM2(IMemtable*);
@@ -52,6 +53,7 @@ private:
     void operator=(const ImmutableMemtableController&) = delete;
 
     void compaction();
+    void convertOldDelayToM2();
     int diskRead(uint64_t key);
     map<uint64_t, int> diskRange(uint64_t start, uint64_t end);
     map<uint64_t, int> rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v);

@@ -41,7 +41,7 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
         if (maxKey != numeric_limits<uint64_t>::min()) {
             memtablePtr->setLastKey(maxKey);
         }
-        immutableController.putMemtableToQueue(memtablePtr);
+        immutableController.putMemtableToM1List(memtablePtr);
     };
 
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
