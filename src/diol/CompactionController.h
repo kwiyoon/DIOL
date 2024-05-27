@@ -7,6 +7,9 @@
 #include <atomic>
 #include <iostream>
 
+#define LOG_STR(str) \
+    cout<<str<<endl;
+
 class CompactionController {
 public:
     CompactionController() : running(false), taskCompleted(false) {}

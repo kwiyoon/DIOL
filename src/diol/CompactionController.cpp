@@ -2,13 +2,13 @@
 #include "memtableController/ImmutableMemtableController.h"
 
 void CompactionController::checkTimeOut() {
-    cout<<"CompactionController::checkTimeOut()\n";
+    LOG_STR("CompactionController::checkTimeOut()");
     ImmutableMemtableController& immController = ImmutableMemtableController::getInstance();
     bool timeoutFound = false;
     if(!immController.normalImmMemtableList_M1.empty()){
         for (const auto memtable : immController.normalImmMemtableList_M1) {
             if (memtable->ttl == 0) {
-                cout<<"compactionQueue.push - timeout\n";
+                LOG_STR("compactionQueue.push - timeout");
                 immController.compactionQueue.push(memtable);
                 immController.erase(immController.normalImmMemtableList_M1, memtable);
                 timeoutFound = true;
@@ -20,14 +20,14 @@ void CompactionController::checkTimeOut() {
         // 타임아웃된 Memtable이 없을 경우 가장 delay 추정치가 적은 Memtable을 찾아 queue에 삽입
         IMemtable* minDelayMemtable = findCompactionMem();
         if(minDelayMemtable != NULL) {
-            cout<<"compactionQueue.push - least delay\n";
-            cout<<"immController.compactionQueue.size(): "<<immController.compactionQueue.size()<<endl;
+            LOG_STR("compactionQueue.push - least delay");
             immController.compactionQueue.push(minDelayMemtable);
-            cout<<"immController.compactionQueue.size(): "<<immController.compactionQueue.size()<<endl;
 
             immController.erase(immController.normalImmMemtableList_M1, minDelayMemtable);
+            LOG_STR("immController.compactionQueue에서 erase 잘 끝냈어요.");
         }
     }
+    LOG_STR("immControll 잘 끝냈어요.");
 }
 
 // delay count가 가장 적은 memtable find
