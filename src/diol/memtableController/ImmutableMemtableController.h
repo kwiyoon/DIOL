@@ -10,9 +10,10 @@
 
 
 #define LOG_STR(str) \
-    cout<<str<<endl;
+//    cout<<str<<endl;
 
 #define LOG_ID(id) \
+//    cout<<"(found in id:"<<id<<")\n";
 
 using namespace std;
 
@@ -23,6 +24,8 @@ static const int LIMIT_SIZE_NORMAL_M1 = 5;
 static const int LIMIT_SIZE_DELAY_M1 = 8;
 static const int LIMIT_SIZE_NORMAL_M2 = 5;
 static const int LIMIT_SIZE_DELAY_M2 = 7;
+
+class FlushController;
 
 class ImmutableMemtableController {
 public:
@@ -38,6 +41,7 @@ public:
     queue<IMemtable*> compactionQueue; // if M1 full -> insert compaction Queue
     queue<IMemtable*> flushQueue;
     CompactProcessor* compactProcessor;
+    FlushController* flushController = nullptr;
     MockDisk& disk;
 
     int read(uint64_t key);
@@ -46,6 +50,9 @@ public:
     void decreaseTTL();
     void erase(vector<IMemtable*>& v, IMemtable* memtable);
     void transformM1toM2(IMemtable*);
+    void setFlushController(FlushController* fc){
+        this->flushController = fc;
+    }
 private:
     ImmutableMemtableController() : disk(MockDisk::getInstance()) {
         compactProcessor = new CompactProcessor();

@@ -18,7 +18,7 @@ int main() {
 //    v.test();
 
     DBManager& tree = DBManager::getInstance();
-    int num = 1000;
+    int num = 5000;
     for(int i=1;i<num;i++){
         LOG_STR("insert "+ to_string(i));
         tree.insert(i,i*2);

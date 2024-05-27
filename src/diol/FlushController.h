@@ -11,11 +11,14 @@
 
 using namespace std;
 
+class ImmutableMemtableController;
+
 class FlushController {
 public:
-    FlushController() : running(false), disk(MockDisk::getInstance()),
-//                        immMemtableController(ImmutableMemtableController::getInstance()),
-                        taskCompleted(false) {}
+    FlushController(ImmutableMemtableController& imm)
+    : running(false), disk(MockDisk::getInstance()),
+        taskCompleted(false), immMemtableController(imm){
+    }
 
     // 시작 메소드
     void start(Type t) {
@@ -49,34 +52,35 @@ public:
 private:
     std::atomic<bool> running;
     std::thread worker;
-//    ImmutableMemtableController& immMemtableController;
     std::condition_variable condition;
     bool taskCompleted;
     mutex mutex;
     MockDisk& disk;
+    ImmutableMemtableController& immMemtableController;
 
     IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
     void checkTimeout(Type t);
 
     void run(Type t){
-//        if(immMemtableController.flushQueue.empty())
-//            checkTimeout(t);
-//        doFlush();
-//        {
-//            std::lock_guard<std::mutex> lock(mutex);
-//            taskCompleted = true;
-//        }
-//        condition.notify_all();
+        cout<<"\n==========flush run============"<<endl;
+        if(immMemtableController.flushQueue.empty())
+            checkTimeout(t);
+        doFlush();
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            taskCompleted = true;
+        }
+        condition.notify_all();
 
     }
 
     void doFlush() {
-//        if (!immMemtableController.flushQueue.empty()) {
-//            IMemtable *memtable = immMemtableController.flushQueue.front();
-//            immMemtableController.flushQueue.pop();
-//            disk.flush(memtable);
-//            delete memtable;
-//        }
+        if (!immMemtableController.flushQueue.empty()) {
+            IMemtable *memtable = immMemtableController.flushQueue.front();
+            immMemtableController.flushQueue.pop();
+            disk.flush(memtable);
+            delete memtable;
+        }
     }
 };
 
