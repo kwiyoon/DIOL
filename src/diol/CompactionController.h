@@ -11,6 +11,8 @@ class CompactionController {
 public:
     CompactionController() : running(false) {}
 
+    void checkTimeOut();
+
     // 시작 메소드
     void start() {
         running = true;
@@ -24,18 +26,14 @@ public:
             worker.join();
         }
     }
-
 private:
     std::atomic<bool> running;
-    std::thread worker;
 
+    std::thread worker;
     IMemtable* findCompactionMem();
-    void checkTimeOut();
     void run() {
-        while (running) {
-            checkTimeOut(); // checkTimeout 메소드 호출
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // 1초마다 반복
-        }
+        checkTimeOut(); // checkTimeout 메소드 호출
+        stop();
     }
 };
 

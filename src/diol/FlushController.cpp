@@ -1,6 +1,7 @@
 #include "FlushController.h"
 //#include "stddef.h"
 
+// TODO : M2 리스트의 80% 이상이 찼을 경우 실행되는 메소드
 void FlushController::checkTimeout() {
     cout<<"FlushController::checkTimeout()\n";
     ImmutableMemtableController& imm = ImmutableMemtableController::getInstance();
@@ -46,12 +47,10 @@ void FlushController::checkTimeout() {
 IMemtable* FlushController::findFlushMem(vector<IMemtable*>& v) {
     int minAccess = INT_MAX;
     IMemtable* imm = NULL;
-    if(!v.empty()) {
-        for (const auto memtable: v) {
-            if (memtable->access < minAccess) {
-                minAccess = memtable->access;
-                imm = memtable;
-            }
+    for (const auto memtable: v) {
+        if (memtable->access < minAccess) {
+            minAccess = memtable->access;
+            imm = memtable;
         }
     }
     return imm;

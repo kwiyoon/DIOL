@@ -7,25 +7,31 @@
 #include <atomic>
 #include "IMemtable.h"
 #include "memtableController/ImmutableMemtableController.h"
+#include "MockDisk.h"
 
 using namespace std;
 
 // TODO : 스레드
 class FlushController {
 public:
-    FlushController() : running(false) {}
+    FlushController() : running(false), disk(MockDisk::getInstance()),
+                        immMemtableController(ImmutableMemtableController::getInstance()) {}
 
     // 시작 메소드
     void start() {
         running = true;
-        worker = std::thread(&FlushController::run, this);
+        timeout_thread = std::thread(&FlushController::checkTimeoutLoop, this);
+        flush_thread = std::thread(&FlushController::doFlushLoop, this);
     }
 
     // 중지 메소드
     void stop() {
         running = false;
-        if (worker.joinable()) {
-            worker.join();
+        if (timeout_thread.joinable()) {
+            timeout_thread.join();
+        }
+        if (flush_thread.joinable()) {
+            flush_thread.join();
         }
     }
 
@@ -36,14 +42,40 @@ public:
 
 private:
     std::atomic<bool> running;
-    std::thread worker;
+    std::thread timeout_thread;
+    std::thread flush_thread;
+    ImmutableMemtableController& immMemtableController;
+    mutex mtx;
+    MockDisk& disk;
 
     IMemtable* findFlushMem(vector<IMemtable*>&);
     void checkTimeout();
-    void run() {
+
+    void checkTimeoutLoop() {
         while (running) {
-            checkTimeout(); // checkTimeout 메소드 호출
-            this_thread::sleep_for(chrono::seconds(1)); // 1초마다 반복
+            checkTimeout();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
+
+    void doFlushLoop() {
+        while (running) {
+            std::unique_lock<std::mutex> lock(mtx);
+            cout<<"FlushController::doFlushLoop\n";
+            if (immMemtableController.flushQueue.empty() && !running) {
+                break;
+            }
+
+            if (!immMemtableController.flushQueue.empty()) {
+                cout<<"FlushController::doFlushLoop - notEmpty\n";
+
+                IMemtable *memtable = immMemtableController.flushQueue.front();
+                immMemtableController.flushQueue.pop();
+                lock.unlock();
+
+                disk.flush(memtable);
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 };
