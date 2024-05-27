@@ -4,6 +4,7 @@
 #include "memtable/IMemtable.h"
 #include "DelayDetector.h"
 #include "memtableController/ActiveMemtableController.h"
+#include "memtableController/ImmutableMemtableController.h"
 #include "CompactionController.h"
 #include "FlushController.h"
 
@@ -34,7 +35,6 @@ private:
         getIdAndIncrement();
 //        compactionController->start();
 //        flushController->start();
-        immMemtableController.setFlushController(new FlushController(immMemtableController));
     }
     DBManager(const DBManager&) = delete;
     void operator=(const DBManager&) = delete;

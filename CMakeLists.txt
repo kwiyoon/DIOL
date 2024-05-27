@@ -19,7 +19,7 @@ include_directories(
 # Add executables
 add_executable(DIOL
 
-        src/main.cpp
+#        src/main.cpp
         src/diol/FlushController.cpp
         src/diol/memtable/DelayMemtable.cpp
         src/diol/memtable/IMemtable.cpp
@@ -32,7 +32,12 @@ add_executable(DIOL
         src/diol/DelayDetector.cpp
         src/diol/MockDisk.cpp
         src/diol/SSTable.cpp
-        src/test/VectorTest.cpp
+        src/test/workload/Workload.cpp
+        src/test/DataFactory.cpp
+        src/test/CompactionTest.cpp
+        src/makeDataset.cpp
+#        src/makeWorkload.cpp
+#        src/testDIOL.cpp
 )
 
 
