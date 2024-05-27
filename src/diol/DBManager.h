@@ -9,16 +9,17 @@
 #include "FlushController.h"
 
 class FlushController;
+
 class DBManager {
 public:
     static DBManager& getInstance(){
         static DBManager instance;
         return instance;
     }
-    ~DBManager(){
-        compactionController->stop();
-        flushController->stop();
-    }
+//    ~DBManager(){
+//        compactionController->stop();
+//        flushController->stop();
+//    }
     int currentId = 0;
     int getIdAndIncrement();
 
@@ -32,14 +33,14 @@ private:
                  immMemtableController(ImmutableMemtableController::getInstance()){
         currentId = 0;
         getIdAndIncrement();
-        compactionController->start();
-        flushController->start();
+//        compactionController->start();
+//        flushController->start();
     }
     DBManager(const DBManager&) = delete;
     void operator=(const DBManager&) = delete;
 
-    CompactionController* compactionController = new CompactionController();
-    FlushController* flushController = new FlushController();
+//    CompactionController* compactionController = new CompactionController();
+//    FlushController* flushController = new FlushController();
 
     ActiveMemtableController& activeMemtableController;
     ImmutableMemtableController& immMemtableController;
