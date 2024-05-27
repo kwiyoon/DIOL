@@ -42,8 +42,6 @@ void IMemtable::initTTL() {
 void IMemtable::initM1() {
     this->memTableStatus = IMMUTABLE;
     this->setState(M1);
-    this->setStartKey(this->mem.begin()->first);
-    this->setLastKey(this->mem.rbegin()->first);
     this->initTTL();
 }
 
