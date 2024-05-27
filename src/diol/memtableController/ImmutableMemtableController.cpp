@@ -72,7 +72,6 @@ void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
 
 int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& v){
     for (auto imm : v) {
-        // TODO : 핑거어쩌고
         if(imm->startKey > key || imm->lastKey < key) continue;
         // 맵에서 키 검색
         auto it = imm->mem.find(key);
@@ -86,11 +85,16 @@ int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& 
 }
 
 int ImmutableMemtableController::read(uint64_t key) {
-    int value = NULL;
-    value = readInVector(key, normalImmMemtableList_M1);
-    if(value == NULL) readInVector(key, normalImmMemtableList_M2);
-    if(value == NULL) readInVector(key, delayImmMemtableList_M1);
-    if(value == NULL) readInVector(key, delayImmMemtableList_M2);
+    int value = readInVector(key, normalImmMemtableList_M1);
+    if(value == NULL) {
+        value = readInVector(key, normalImmMemtableList_M2);
+    }
+    if(value == NULL) {
+        value = readInVector(key, delayImmMemtableList_M1);
+    }
+    if(value == NULL) {
+        value = readInVector(key, delayImmMemtableList_M2);
+    }
 
     if(value != NULL) return value;
     return diskRead(key); //빈함수
