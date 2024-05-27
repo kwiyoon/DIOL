@@ -140,12 +140,12 @@ void ImmutableMemtableController::compaction() {
 
     if(!delayImmMemtableList_M1.empty()){
         IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
+
         transformM1toM2(delaymemtable);
     }
     transformM1toM2(normalMemtable);
     compactionQueue.pop();
     LOG_STR("ImmutableMemtableController::compaction 끝!");
-
 }
 
 void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtable){
