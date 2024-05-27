@@ -131,10 +131,14 @@ void ImmutableMemtableController::compaction() {
     }
 
     IMemtable* normalMemtable = compactionQueue.front();
-    IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
-    compactionQueue.pop();
+
+    if(!delayImmMemtableList_M1.empty()){
+        IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
+
+        transformM1toM2(delaymemtable);
+    }
     transformM1toM2(normalMemtable);
-    transformM1toM2(delaymemtable);
+    compactionQueue.pop();
 }
 
 void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtable){
