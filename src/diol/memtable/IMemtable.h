@@ -9,19 +9,14 @@ enum State{
     /** IMMUTABLE */
     M1, M2
 };
-//
-//// TODO (new) : refactor
-//enum Type{
-//    N,  // Normal
-//    D   // Delay
-//};
-
 
 enum MemTableStatus {
     /** MemTable is still working (State = M0)*/
     WORKING,
     /** in M1 LIST*/
     IMMUTABLE,
+    /** Memtable이 읽히는 중일 때 */
+    READING,
     /** Compaction을 기다리는 상태 */
     WAITING_FOR_COMPACT,
     /** MemTable compaction is in progress */

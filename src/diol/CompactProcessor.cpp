@@ -46,6 +46,7 @@ IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable
         // 다른 thread가 건드는 중이거나 후보라면 패스
         if(delayMem->memTableStatus == COMPACTING
             || delayMem->memTableStatus == WAITING_FOR_COMPACT) continue;
+        while(!delayMem->memTableStatus == READING);
         // ttl이 다 됐다면 M2로 즉시 변환
         if(delayMem->ttl == 0){
             immutableMemtableController.transformM1toM2(delayMem);

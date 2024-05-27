@@ -9,12 +9,14 @@ map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, ui
     map<uint64_t, int> segment;
 
     for (auto imm : normalImmMemtableList_M1) {
+        imm->memTableStatus = READING;
         flag = false;
         for (auto it = imm->mem.lower_bound(start); it != imm->mem.end() && it->first <= end; ++it) {
             segment[it->first] = it->second;
             flag = true;
         }
         if(flag) ids.push_back("("+to_string(imm->memtableId)+")");
+        imm->memTableStatus = IMMUTABLE;
     }
 
     return segment;
@@ -72,6 +74,7 @@ void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
 
 int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& v){
     for (auto imm : v) {
+        imm->memTableStatus = READING;
         if(imm->startKey > key || imm->lastKey < key) continue;
         // 맵에서 키 검색
         auto it = imm->mem.find(key);
@@ -80,6 +83,7 @@ int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& 
             imm->increaseAccessCount(1);
             return it->second;  // 키를 찾았으면 값 반환
         }
+        imm->memTableStatus = IMMUTABLE;
     }
     return NULL;
 }
