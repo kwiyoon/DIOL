@@ -100,7 +100,3 @@ void CompactionTest::runCompaction(){
 
     return;
 }
-
-
-
-

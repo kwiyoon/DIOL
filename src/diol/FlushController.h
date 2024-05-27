@@ -76,7 +76,7 @@ private:
             IMemtable *memtable = immMemtableController.flushQueue.front();
             immMemtableController.flushQueue.pop();
             disk.flush(memtable);
-            delete memtable;
+//            delete memtable;
         }
     }
 };

@@ -5,6 +5,7 @@
 #include <random>
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <chrono>
@@ -12,7 +13,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstring>
-#include <fstream>
+
 
 
 #include "../diol/DBManager.h"
@@ -34,9 +35,8 @@ class DataFactory {
 public:
     void generateNormalDataset(int n);
     void NormalTest();
-    void generateDelayedDataset(string& dataSetName, int n, double outOfOrderRatio);
+    void generateDelayedDataset(string& dataSetName, int dataNum, double outOfOrderRatio);
     void delayedTest();
-    void printDelayData();
 
     void writeToInitFile(string filePath, vector<uint64_t>& dataset);
 

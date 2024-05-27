@@ -13,6 +13,8 @@ enum State{
 enum MemTableStatus {
     /** MemTable is still working (State = M0)*/
     WORKING,
+    /** insert 중이라면 */
+    INSERTING,
     /** in M1 LIST*/
     IMMUTABLE,
     /** Memtable이 읽히는 중일 때 */

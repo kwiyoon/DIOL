@@ -35,9 +35,10 @@ add_executable(DIOL
         src/test/workload/Workload.cpp
         src/test/DataFactory.cpp
         src/test/CompactionTest.cpp
-        src/makeDataset.cpp
+
+#        src/makeDataset.cpp
 #        src/makeWorkload.cpp
-#        src/testDIOL.cpp
+        src/testDIOL.cpp
 )
 
 

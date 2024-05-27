@@ -101,6 +101,7 @@ bool MockDisk::flush(IMemtable* memtable) {
         doFlush(memtable->mem.size());
     }
 
+    delete memtable;
     return true;
 }
 

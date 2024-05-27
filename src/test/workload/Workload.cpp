@@ -109,14 +109,6 @@ void Workload::executeWorkload(vector<Record>& dataset, int initDataNum) {
     cout << "Workload 실행 시간: " << elapsed.count() << " ms" << endl;
 }
 
-//
-//DBManager* Workload::getTree() {
-//    return tree;
-//}
-//void Workload::cleanup() {
-//    delete tree;
-//    tree = nullptr;
-//}
 
 void Workload::deleteAllSSTable() {
     std::string directoryPath = "../src/test/SSTable"; // SSTable 폴더의 경로
@@ -129,52 +121,76 @@ void Workload::deleteAllSSTable() {
         cerr << "Error: " << e.what() << endl;
     }
 }
-//Todo: SSTable unordered_map
+
 void Workload::makeSSTable() {
-//
-//    deleteAllSSTable(); //기존 파일 삭제
-//
-//    int fileCounter=0;
-//
-//    string filename="../src/test/SSTable/NormalSStable";
-//
-//    for(auto sstable:disk.normalSSTables){
-//        ofstream outputFile(filename);
-//        if (!outputFile.is_open()) {
-//            cerr << "Failed to open output file: " << filename << endl;
-//            return;
-//        }
-//
-//        filename+=  to_string(++fileCounter) + ".txt";
-//        outputFile<<sstable->ss.size()<<"\n";  //사이즈
-//        outputFile<<sstable->ss.begin()->first<<"\t"<<sstable->ss.end()->first<<"\n"; //처음키, 마지막키
-//        for (const auto& pair : sstable->ss) {
-//            outputFile << pair.first << "\t" << pair.second << "\n";
-//        }
-//
-//        outputFile.close();
-//    }
-//
-//    fileCounter=0;
-//
-//     filename="../src/test/SSTable/DelaySStable";
-//
-//    for(auto sstable:disk.delaySSTables){
-//
-//        ofstream outputFile(filename);
-//        if (!outputFile.is_open()) {
-//            cerr << "Failed to open output file: " << filename << endl;
-//            return;
-//        }
-//
-//        filename+=  to_string(++fileCounter) + ".txt";
-//        outputFile<<sstable->ss.size()<<"\n";  //사이즈
-//        outputFile<<sstable->ss.begin()->first<<"\t"<<sstable->ss.end()->first<<"\n"; //처음키, 마지막키
-//        for (const auto& pair : sstable->ss) {
-//            outputFile << pair.first << "\t" << pair.second << "\n";
-//        }
-//
-//        outputFile.close();
-//    }
+
+    deleteAllSSTable(); //기존 파일 삭제
+
+    int fileCounter=0;
+
+    string filename="../src/test/SSTable/NormalSStable";
+
+    MockDisk& disk = MockDisk::getInstance();
+    for(auto sstable:disk.normalSSTables){
+
+        ofstream outputFile(filename);
+        if (!outputFile.is_open()) {
+            cerr << "Failed to open output file: " << filename << endl;
+            return;
+        }
+
+        filename+=  to_string(++fileCounter) + ".txt";
+        outputFile<<sstable->rows.size()<<"\n";  //사이즈
+        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
+        for (const auto& pair : sstable->rows) {
+            outputFile << pair.first << "\t" << pair.second << "\n";
+        }
+
+        outputFile.close();
+    }
+
+    fileCounter=0;
+
+    filename="../src/test/SSTable/DelaySStable";
+
+    for(auto sstable:disk.delaySSTables){
+
+        ofstream outputFile(filename);
+        if (!outputFile.is_open()) {
+            cerr << "Failed to open output file: " << filename << endl;
+            return;
+        }
+
+        filename+=  to_string(++fileCounter) + ".txt";
+        outputFile<<sstable->rows.size()<<"\n";  //사이즈
+        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
+        for (const auto& pair : sstable->rows) {
+            outputFile << pair.first << "\t" << pair.second << "\n";
+        }
+
+        outputFile.close();
+    }
 
 }
+
+/*void Workload::printDelayData(){
+    MockDisk& disk = MockDisk::getInstance();
+
+    int delaySSTableNum= tree.Disk->delaySSTables.size();
+    int delaySSTableSize=0;
+    if(delaySSTableNum!= 0){
+        delaySSTableSize= tree.Disk->delaySSTables.front()->ss.size();
+    }
+
+    cout<<"the number of delay data in Disk : "<<delaySSTableNum*delaySSTableSize<<"\n";
+
+    int delayImmMemtableNum=0;
+    int delayActiveMemtableNum=tree.activeDelayMemtable->mem.size();
+    for(auto memtable : tree.immMemtableList){
+        if(memtable->type=='D') delayImmMemtableNum++;
+    }
+
+    cout<<"the number of delay data in Memory : "<< delayImmMemtableNum*delaySSTableSize+delayActiveMemtableNum<<"\n";
+
+}
+ */

@@ -1,239 +1,342 @@
-#include "../core/DBManager.h"
+
+
 #include "DataFactory.h"
-#include <random>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <chrono>
+
 
 using namespace std;
 
 //o3 데이터 없이 데이터셋 생성
 void DataFactory:: generateNormalDataset(int n){
-    tree = new DBManager();
     for (uint64_t i = 1; i <= n; ++i) {
         auto data = make_pair(i, static_cast<int>(i * 2));
-        tree->insert(data.first, data.second);
+        tree.insert(data.first, data.second);
     }
 }
 
-void DataFactory:: NormalTest(){
-    tree->printActiveMemtable(true);
-    tree->printImmMemtable();
-    tree->Disk->printSSTableList();
 
-    //parameter case별로 테스트 결과 달라짐
-//    cout<<"\n\n\n\n========read/range test=========\n";
-//
-//    cout<<"[Read] key : "<<2009<<" value : "<<tree->readData(2009)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<2010<<" value : "<<tree->readData(2010)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<2011<<" value : "<<tree->readData(2011)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<1000<<" value : "<<tree->readData(1000)<<"\n"; // normalSSTable read
-//    cout<<"[Read] key : "<<1200<<" value : "<<tree->readData(1200)<<"\n"; // normalSSTable read
-//    // Active에만 있는 data를 읽으려 할 때 불가! : -1
-//    cout<<"[Read] key : "<<2390<<" value : "<<tree->readData(2390)<<"\n";
-//
-//    // 하나의 normal ImmMemtable range
-//    cout<<"\n[range] 하나의 normal ImmMemtable range : 2020 ~ 2030\n";
-//    map<uint64_t, int> result = tree->range(2020,2030);
-//    for(auto data: result){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//    // 여러개의 normal ImmMemtable range
-//    cout<<"\n[range] 여러개의 normal ImmMemtable range : 2005 ~ 2015\n";
-//    map<uint64_t, int> result1 = tree->range(2005,2015);
-//    for(auto data: result1){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // 한개의 SStalble range
-//    cout<<"\n[range] 한개의 SStalble range : 700 ~ 710\n";
-//    map<uint64_t, int> result2 = tree->range(700,710);
-//    for(auto data: result2){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // 여러개의 SStalble range
-//    cout<<"\n[range] 여러개의 SStalble range : 330 ~ 340\n";
-//    map<uint64_t, int> result3 = tree->range(330,340);
-//    for(auto data: result3){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // ImmTable과 SStable에 섞여있을때
-//    cout<<"\n[range] ImmTable과 SStable에 섞여있을때 : 1670 ~ 1680\n";
-//    map<uint64_t, int> result4 = tree->range(1670,1680);
-//    for(auto data: result4){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-    delete tree;
-}
+/** DelayData 포함 Data 생성 함수*/
+void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, double outOfOrderRatio) {
+    int outOfOrderCount = static_cast<int>(dataNum * outOfOrderRatio); // out of order 데이터 총 개수
+    int segmentDataNum= outOfOrderCount/2;
+    int numSegments= segmentDataNum/20;  //하이퍼파라미터
+    int iteration = 0; // 진행률 표시를 위한 변수
 
-// o3데이터 포함 데이터셋 생성 함수
-void DataFactory:: generateDelayedDataset(int n, double outOfOrderRatio, int numSegments) {
-    vector<pair<uint64_t, int>> dataset;
-    tree = new DBManager();
+    std::vector<int> indices(segmentDataNum);
+    std::iota(indices.begin(), indices.end(), 0);
 
-    // out of order 데이터 개수 계산
-     outOfOrderCount = static_cast<int>(n * outOfOrderRatio);
+    // Randomly shuffle the indices
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+
+    std::vector<std::vector<int>> outOfOrderKeysPerSegment(numSegments); //segment 묶음 단위 out of order 데이터들을 저장할 벡터
 
 
-    //out of order 데이터 셋 생성
-    vector<vector<uint64_t>> outOfOrderKeysPerSegment(numSegments);
-    for (int segment = 0; segment < numSegments; ++segment) {
-        outOfOrderCount = static_cast<int>(n * outOfOrderRatio / numSegments);
-        for (int i = 1; i <= outOfOrderCount; ++i) {
-            outOfOrderKeysPerSegment[segment].push_back(i + segment * (n / numSegments));
+//    srand(time(0));
+//    random_device rd; // 난수 생성기 시드
+//    mt19937 gen(rd()); // Mersenne Twister 난수 생성기
+
+
+    /**1~dataNum 범위 dataset 초기화
+     * */
+    vector<uint64_t> dataSet(dataNum);
+
+    cout<< "dataSet 1부터 dataNum까지 초기화\n";
+    std::iota(dataSet.begin(), dataSet.end(), 1);
+    cout<< "dataSet 초기화 완료\n";
+
+
+
+    /**out of order data 각 segment 크기 설정
+     * */
+    cout<<"생성되어야할 segment 개수 : "<<numSegments<<"\n";
+    int count25Percent = numSegments * 0.25;
+    for (int i = 0; i < count25Percent; ++i) {
+        sizes.push_back(10);
+    }
+
+    for (int i = 0; i < count25Percent; ++i) {
+        sizes.push_back(30);
+    }
+
+    int count50Percent = numSegments * 0.50;
+    for (int i = 0; i < count50Percent; ++i) {
+        sizes.push_back(20);
+    }
+
+    //생성되는 segment 개수가 1:1:2로 정수로 나누어지지 않는 경우 계산 보정
+    if(count25Percent+count25Percent+count50Percent!=numSegments){
+        sizes.push_back(20);
+    }
+
+    std::shuffle(sizes.begin(), sizes.end(), g);
+
+
+
+    /**out of order data segment에 들어갈 key 선정
+     * */
+    int distance = dataNum / numSegments; // 각 delay segment 생성될 범위 조정 (distance구간당 segment 1개씩 매핑)
+    int start=1;
+    int end=distance;
+    for (size_t i = 0; i < sizes.size(); i++) {
+        std::uniform_int_distribution<> nextDis(start, end-sizes[i]); // currentIdx 부터 distance-(생성될 segment 사이즈) 사이에서 seg에 들어갈 첫번째 delay key선정
+        int delayedKey = nextDis(g);
+
+        std::cout << "\n구간 " << i + 1 << " (" << sizes[i] << "개) : " << delayedKey << " ~ " << delayedKey + sizes[i] - 1 << "\n";
+
+        start = end+1;
+        end = start+distance-1;
+
+        for (int j = 0; j < sizes[i]; j++) {
+            outOfOrderKeysPerSegment[i].push_back(delayedKey + j);
+        }
+
+
+    }
+
+
+
+    /**out of order segment에 포함되는 key들 찾아 dataSet에서 제거
+     * */
+    unordered_set<uint64_t> outOfOrderKeys;
+    for (const auto& segment : outOfOrderKeysPerSegment) {
+        for (const auto& key : segment) {
+            outOfOrderKeys.insert(key);
         }
     }
 
-    // 노멀 데이터셋 생성
-    cout << "Dataset:" << endl;
-    for (int i = 1; i <= n; ++i) {
-        dataset.push_back(make_pair(i, i * 2));
+    dataSet.erase(
+            remove_if(dataSet.begin(), dataSet.end(), [&](uint64_t key) {
+                return outOfOrderKeys.find(key) != outOfOrderKeys.end();
+            }),
+            dataSet.end()
+    );
+
+
+    /**out of order 단일 key 선정
+     * */
+    vector<uint64_t> remainingKeys(dataSet.begin(), dataSet.end());
+    srand(static_cast<unsigned>(std::time(0))); // 난수 생성기 초기화
+
+    std::unordered_set<uint64_t> randomKeys;
+    size_t numberOfKeysToSelect = outOfOrderCount / 2;
+
+    while (randomKeys.size() < numberOfKeysToSelect) {
+        size_t randomIndex = rand() % remainingKeys.size();
+        randomKeys.insert(remainingKeys[randomIndex]);
     }
 
-    //out of order 데이터 구간 출력(이 구간을 확인해야 out of order 데이터 추가할 위치(index)를 결정할 수 있음)
-    cout << "Out of order Dataset:" << endl;
-    for (int segment = 0; segment < numSegments; ++segment) {
-        cout << "=======Segment " << segment + 1 << "구간=======" << endl;
+    dataSet.erase(
+            remove_if(dataSet.begin(), dataSet.end(), [&](uint64_t key) {
+                return randomKeys.find(key) != randomKeys.end();
+            }),
+            dataSet.end()
+    );
 
-        const auto& outOfOrderKeys = outOfOrderKeysPerSegment[segment];
 
-        if (!outOfOrderKeys.empty()) {
-            cout << "첫번째 Key: " << outOfOrderKeys.front() << endl;
-            cout << "마지막 Key: " << outOfOrderKeys.back() << endl;
+    /** dataset에 단일 out of order data 추가
+     * */
+    cout<<"\n>> 단일 Out of order data 추가\n\n";
+    for(const auto &key : randomKeys) {
+        int randomChoice = rand() % 100 + 1;
+        if (randomChoice <= 30) {
+            randomIndex = key + (rand() % 500 + 1); // 1~500 범위 내
+        } else if (randomChoice <= 60) {
+            randomIndex = key + (rand() % 500 + 501); // 501~1000 범위 내
+        } else if (randomChoice <= 80) {
+            randomIndex = key + (rand() % 1000 + 1001); // 1001~2000 범위 내
         } else {
-            cerr  << "ERR: 해당 구간에 out of order key가 없습니다.\n";
+            randomIndex = rand() % dataSet.size() + 1 + key;
         }
+
+        // 랜덤 인덱스가 dataSet 범위를 벗어나면 dataSet 뒤에 추가
+        if(randomIndex >= dataSet.size()){
+            dataSet.push_back(key);
+        }else{
+            dataSet.insert(dataSet.begin() + randomIndex, key);
+        }
+
+        iteration++;
+//        cout<<randomKeys.size()<<endl;
+        if ( iteration % (randomKeys.size() / 10) == 0) {
+            VECTOR_LOG_PROGRESS(iteration, randomKeys);
+        }
+
     }
 
-    //기존 dataset에서 out of order key와 겹치는 데이터 제거
-    for (int segment = 0; segment < numSegments; ++segment) {
-        auto& outOfOrderKeys = outOfOrderKeysPerSegment[segment];
-        auto it = dataset.begin();
-        while (it != dataset.end()) {
-            auto found = find(outOfOrderKeys.begin(), outOfOrderKeys.end(), it->first);
-            if (found != outOfOrderKeys.end()) {
-                it = dataset.erase(it); //
-            } else {
-                ++it;
+
+    /** dataset에 out of order data segment 추가
+     * */
+    cout<<">> Out of order dataSet 추가\n\n";
+    iteration=0;
+    for(const auto &segment : outOfOrderKeysPerSegment){
+        //현재 segment의 마지막 key값보다 큰 인덱스에 랜덤 생성(offset)
+        int randomChoice = rand() % 100 + 1;
+        int isIndexValid;
+        if(segment.back()==0){
+            cerr << "ERR: delay segment size생성이 제대로 되지 않았습니다. 총 segment 개수와 0.25, 0.25, 0.5 비율";
+        }
+        if (randomChoice <= 30) {
+            randomIndex = rand() % 500 + 1; // 1~500 범위 내
+            isIndexValid = segment.back() + randomIndex;
+        } else if (randomChoice <= 60) {
+            randomIndex = rand() % 500 + 501; // 501~1000 범위 내
+            isIndexValid = segment.back() + randomIndex;
+        } else if (randomChoice <= 80) {
+            randomIndex = rand() % 1000 + 1001; // 1001~2000 범위 내
+            isIndexValid = segment.back()  + randomIndex;
+        } else {
+            randomIndex = rand() % dataSet.size() + 1; // 1 ~ dataSet.size() 범위 내
+            isIndexValid = segment.back() + randomIndex;
+        }
+
+        // 랜덤 인덱스가 dataSet 범위를 벗어나면 dataSet 뒤에 추가
+        if(isIndexValid>= dataSet.size()){
+            for (const auto& key : segment) {
+                dataSet.push_back(key);
             }
         }
-    }
+        else{
+            for (const auto& key : segment) {
+                dataSet.insert(dataSet.begin() + isIndexValid++, key);
 
-    // 각 구간에 out of order set을 추가
-    for (int segment = 0; segment < numSegments; ++segment) {
-        if (!dataset.empty()) {
-            // o3 data를 추가할 randomIndex값을 사용자로부터 입력받기
-            int userInputIndex;
-            cout << "Enter randomIndex (" << segment+1 << "구간): ";
-            cin >> userInputIndex;
-
-            randomIndex=userInputIndex-outOfOrderKeysPerSegment[segment].size()-1;
-
-            // outOfOrderKeys[seg]의 요소들을 input으로 받은 index위치에 추가
-            for (const auto& key : outOfOrderKeysPerSegment[segment]) {
-                dataset.insert(dataset.begin() + randomIndex++, make_pair(key, static_cast<int>(key * 2)));
             }
-
+        }
+        iteration++;
+        if ( iteration % (outOfOrderKeysPerSegment.size() / 10) == 0) {
+            INT_LOG_PROGRESS(iteration, outOfOrderKeysPerSegment.size());
         }
     }
-    tree = new DBManager();
-    // 데이터셋 tree에 삽입
-    cout << "최종 DataSet" << endl;
-    for (const auto& pair : dataset) {
-        tree->insert(pair.first, pair.second);
-//        cout << pair.first << ": " << pair.second << endl;
+
+
+    /** File에 쓰기
+    * */
+    string filePath = "../src/test/dataset/"+dataSetName+ "_c"+to_string(dataNum)+"_d"+to_string(outOfOrderRatio).substr(0, std::to_string(outOfOrderRatio).find('.') + 2)+".txt";
+    if (!dataSet.empty()) {
+        writeToInitFile(filePath, dataSet);
+    } else {
+        cerr << "ERR:"<<filePath <<"가 비어있습니다." << endl;
     }
 }
 
+void DataFactory::writeToInitFile(string filePath, vector<uint64_t>& dataset) {
+    ofstream outputFile(filePath);
+    std::cout << "\n>> Write to Init File Progress \n\n";
 
-void DataFactory:: delayedTest(){
-
-    tree->printActiveMemtable(false);
-    tree->printImmMemtable();
-    tree->Disk->printSSTableList();
-
-    //parameter case별로 테스트 결과 달라짐
-//    cout<<"\n\n\n\n========read/range test=========\n";
-//
-//    cout<<"[Read] key : "<<2009<<" value : "<<tree->readData(2009)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<2010<<" value : "<<tree->readData(2010)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<2011<<" value : "<<tree->readData(2011)<<"\n"; // normal ImmMemtable read
-//    cout<<"[Read] key : "<<1000<<" value : "<<tree->readData(1000)<<"\n"; // normalSSTable read
-//    cout<<"[Read] key : "<<1200<<" value : "<<tree->readData(1200)<<"\n"; // normalSSTable read
-//    // Active에만 있는 data를 읽으려 할 때 불가! : -1
-//    cout<<"[Read] key : "<<2390<<" value : "<<tree->readData(2390)<<"\n";
-//
-//    // 하나의 normal ImmMemtable range
-//    cout<<"\n[range] 하나의 normal ImmMemtable range : 2020 ~ 2030\n";
-//    map<uint64_t, int> result = tree->range(2020,2030);
-//    for(auto data: result){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//    // 여러개의 normal ImmMemtable range
-//    cout<<"\n[range] 여러개의 normal ImmMemtable range : 2005 ~ 2015\n";
-//    map<uint64_t, int> result1 = tree->range(2005,2015);
-//    for(auto data: result1){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // 한개의 SStalble range
-//    cout<<"\n[range] 한개의 SStalble range : 700 ~ 710\n";
-//    map<uint64_t, int> result2 = tree->range(700,710);
-//    for(auto data: result2){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // 여러개의 SStalble range
-//    cout<<"\n[range] 여러개의 SStalble range : 330 ~ 340\n";
-//    map<uint64_t, int> result3 = tree->range(330,340);
-//    for(auto data: result3){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-//
-//    // ImmTable과 SStable에 섞여있을때
-//    cout<<"\n[range] ImmTable과 SStable에 섞여있을때 : 1670 ~ 1680\n";
-//    map<uint64_t, int> result4 = tree->range(1670,1680);
-//    for(auto data: result4){
-//        cout<<"key : "<<data.first<<" value : "<<data.second<<"\n";
-//    }
-    delete tree;
-};
-
-void DataFactory::printDelayData(){
-
-    int delaySSTableNum= tree->Disk->delaySSTables.size();
-    int delaySSTableSize=0;
-    if(delaySSTableNum!= 0){
-        delaySSTableSize= tree->Disk->delaySSTables.front()->ss.size();
+    if (!outputFile.is_open()) {
+        cerr << "ERR: workload dataset 파일 열기 오류" << endl;
+        return;
     }
 
-    cout<<"the number of delay data in Disk : "<<delaySSTableNum*delaySSTableSize<<"\n";
-
-    int delayImmMemtableNum=0;
-    int delayActiveMemtableNum=tree->activeDelayMemtable->mem.size();
-    for(auto memtable : tree->immMemtableList){
-        if(memtable->type=='D') delayImmMemtableNum++;
-    }
-
-    cout<<"the number of delay data in Memory : "<< delayImmMemtableNum*delaySSTableSize+delayActiveMemtableNum<<"\n";
-
-}
-
-void DataFactory::deleteAllSSTable() {
-    std::string directoryPath = "../src/test/SSTable"; // SSTable 폴더의 경로
-    try {
-        // 디렉터리 내의 모든 파일 순회
-        for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
-            filesystem::remove(entry.path()); // 파일 삭제
-            cout << "Deleted: " << entry.path() << endl;
+    for(int i=0; i<dataset.size(); i++){
+        outputFile << "INSERT," << dataset[i] << endl;
+        if (i != 0 && i % (dataset.size() / 100) == 0) {
+            VECTOR_LOG_PROGRESS(i, dataset);
         }
-    } catch (const std::filesystem::filesystem_error& e) {
-        cerr << "Error: " << e.what() << endl;
     }
+
+    outputFile.close();
 }
+
+
+
+/**File에 Workload 쓰기 함수*/
+void DataFactory::writeToWorkloadFile(string filePath, vector<Record>& dataset) {
+    ofstream outputFile(filePath);
+    if (!outputFile.is_open()) {
+        cerr << "workload dataset 파일 열기 오류" << endl;
+        return;
+    }
+    std::cout << "\n>> Write to Workload File Progress \n";
+    for(int i=0; i<dataset.size(); i++){
+        if (strcmp(dataset[i].op.c_str(), "RANGE")==0) {
+            outputFile << dataset[i].op << "," << dataset[i].start_key << " " << dataset[i].end_key << endl;
+        } else {
+            outputFile << dataset[i].op << "," << dataset[i].key << endl;
+        }
+
+        if (i != 0 && i % (dataset.size() / 100) == 0) {
+            VECTOR_LOG_PROGRESS(i, dataset);
+        }
+    }
+    cout<<"file write완료\n\n";
+    outputFile.close();
+}
+std::string to_string_with_precision(double value, int precision) {
+    std::ostringstream out;
+    out.precision(precision);
+    out << std::fixed << value;
+    return out.str();
+}
+
+/** Workload 데이터 생성 함수*/
+void DataFactory::generateWorkloadDataset(vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion) {
+
+    vector<Record> dataset;
+    int initFileRecordCount = initDataSet.size();   //전체 데이터셋 개수
+    int txnFileRecordCount = initFileRecordCount/2; // 워크로드의 INSERT 작업 개수(전체 데이터 셋의 절반)
+    int singleReadCount = txnFileRecordCount * (readProportion/insertProportion) * singleReadProportion; // 단일 읽기 작업 해야할 총 횟수
+    int rangeCount = txnFileRecordCount * (readProportion/insertProportion) * rangeProportion; // 범위 조회 작업 해야할 총 횟수
+    cout << ">> Generate to Workload Dataset Progress \n\n";
+    cout<<"1) workload Insert 작업 추가\n";
+    for(int i=0; i<initFileRecordCount; i++){
+        Record record;
+        record.key = initDataSet[i].key;
+        record.op = "INSERT";
+        dataset.push_back(record);
+        if (i != 0 && i % (initFileRecordCount / 100) == 0) {
+            INT_LOG_PROGRESS(i, initFileRecordCount);
+        }
+    }
+
+
+    int totalWorkCount = singleReadCount + rangeCount;
+    int completedWorkCount = 0;
+    cout<<"2) Workload read, range 작업 추가\n";
+    while (singleReadCount > 0 || rangeCount > 0) {
+        // 랜덤한 인덱스에 read 작업 레코드 추가
+        int randomReadKey = rand() % (initFileRecordCount/2) + 1;
+        Record record;
+        if (singleReadCount > 0) {                          // single read 작업일 경우
+            record.key = randomReadKey;
+            --singleReadCount;
+            record.op = "READ";
+        } else {                                            // range read 작업일 경우
+            int rangeStart = rand() % (initFileRecordCount/2) + 1;
+            int rangeEnd = rand() % (initFileRecordCount/2) + 1;
+            if (rangeStart > rangeEnd) {
+                swap(rangeStart, rangeEnd);
+            }
+            record.start_key = rangeStart;
+            record.end_key = rangeEnd;
+            record.op = "RANGE";
+            --rangeCount;
+        }
+        // 워크로드 삽입
+        dataset.insert(dataset.begin() + initFileRecordCount/2 + randomReadKey, record);
+        completedWorkCount++;
+
+        /**진행률 출력*/
+        if (completedWorkCount % (totalWorkCount / 100) == 0) {
+            INT_LOG_PROGRESS(completedWorkCount, totalWorkCount);
+        }
+    }
+
+    /**파일에 쓰기*/
+    std::string filePath;
+    if(singleReadProportion == 0.5) {
+        filePath = "../src/test/dataset/"+workloadDataName+"_i" + to_string_with_precision(insertProportion, 1) +
+                   "_i" + to_string_with_precision(readProportion, 1) + "_V1.txt";
+    } else {
+        filePath = "../src/test/dataset/"+workloadDataName+"_r"+ to_string_with_precision(readProportion, 1) +
+                   "_i" + to_string_with_precision(insertProportion, 1) + "_V2.txt";
+    }
+    writeToWorkloadFile(filePath, dataset);
+
+    return;
+}
+
+
 
 void DataFactory::writeToFile(size_t bytes){
 
@@ -241,7 +344,7 @@ void DataFactory::writeToFile(size_t bytes){
     vector<char> data(bytes);
 
     if(!file.is_open()){
-        cout<<"안녕ㄹ\n";
+        cerr << "ERR: 파일 open 오류\n";
     }
 
     // 데이터를 무작위로 생성
@@ -263,6 +366,7 @@ void DataFactory::writeToFile(size_t bytes){
     file.close();
 
 }
+
 void DataFactory::readFromFile(size_t bytes){
 
     ifstream file(filename, ios::binary);

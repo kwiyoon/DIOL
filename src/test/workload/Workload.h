@@ -27,18 +27,19 @@ private:
     DBManager& tree;
     MockDisk& disk;
 
-public:
 
+public:
     Workload(DBManager& _tree, MockDisk& _disk) : tree(_tree), disk(_disk) {}
     Workload(const Workload&) = delete;
     vector<Record> readFile(const string& filePath);
     void executeInsertWorkload(vector<Record>& dataset, int start, int end);
     void executeMixedWorkload(vector<Record>& dataset, int start, int end);
     void executeWorkload(vector<Record>& dataset, int initDataNum);
-//    void cleanup();
-//    DBManager* getTree();
+    void cleanup();
+    DBManager* getTree();
     void deleteAllSSTable();
     void makeSSTable();
+    void printDelayData();
 
 };
 #endif //IOTDB_LSM_WORKLOAD_H

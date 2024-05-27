@@ -174,12 +174,15 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
 
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
     if(LIMIT_SIZE_NORMAL_M2*0.8 <= normalImmMemtableList_M2.size()){
+        cout<<"im normal "<<memtable->memtableId<<"가 transformM1toM2 중입니다"<<endl;
         cout<<"\n==========full!!============"<<endl;
         flushController->start(N);
         flushController->waitForCompletion();
         flushController->stop();
     }
     if(LIMIT_SIZE_DELAY_M2*0.8 <= delayImmMemtableList_M2.size()){
+        cout<<"im delay "<<memtable->memtableId<<"가 transformM1toM2 중입니다"<<endl;
+
         cout<<"\n==========full!!============"<<endl;
         flushController->start(D);
         flushController->waitForCompletion();
