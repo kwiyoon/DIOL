@@ -20,7 +20,7 @@
 
 
 class Workload {
-private:
+public:
     vector<int> op;    //INSERT: 0, READ: 1, RANGE: 2
     vector<uint64_t> workloadKey;
     vector<pair<uint64_t, uint64_t> > workloadRangeKey;
@@ -28,7 +28,7 @@ private:
     MockDisk& disk;
 
 
-public:
+
     Workload(DBManager& _tree, MockDisk& _disk) : tree(_tree), disk(_disk) {}
     Workload(const Workload&) = delete;
     vector<Record> readFile(const string& filePath);

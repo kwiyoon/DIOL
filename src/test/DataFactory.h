@@ -19,10 +19,15 @@
 #include "../diol/DBManager.h"
 
 #define VECTOR_LOG_PROGRESS(iteration, datasetSize) \
-    cout << (iteration * 100 / datasetSize.size()) << "% \n";
+    if ((iteration * 100 / datasetSize.size()) % 10 == 0) { \
+        cout << (iteration * 100 / datasetSize.size()) << "% \n"; \
+    }
 
 #define INT_LOG_PROGRESS(iteration, Count) \
-    cout << (iteration * 100 / Count) << "% \n";
+    if ((iteration * 100 / Count) % 10 == 0) { \
+        cout << (iteration * 100 / Count) << "% \n"; \
+    }
+
 using namespace std;
 struct Record {
     string op;
@@ -44,7 +49,7 @@ public:
 
     void writeToFile(size_t bytes);
     void readFromFile(size_t bytes);
-    void generateWorkloadDataset(vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion);
+    void generateWorkloadDataset(string initDataName,vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion);
     void writeToWorkloadFile(string filePath, vector<Record>& dataset);
 private:
     DBManager& tree = DBManager::getInstance();

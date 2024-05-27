@@ -270,7 +270,7 @@ std::string to_string_with_precision(double value, int precision) {
 }
 
 /** Workload 데이터 생성 함수*/
-void DataFactory::generateWorkloadDataset(vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion) {
+void DataFactory::generateWorkloadDataset(string initDataName, vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion) {
 
     vector<Record> dataset;
     int initFileRecordCount = initDataSet.size();   //전체 데이터셋 개수
@@ -325,11 +325,11 @@ void DataFactory::generateWorkloadDataset(vector<Record>& initDataSet, string& w
     /**파일에 쓰기*/
     std::string filePath;
     if(singleReadProportion == 0.5) {
-        filePath = "../src/test/dataset/"+workloadDataName+"_i" + to_string_with_precision(insertProportion, 1) +
-                   "_i" + to_string_with_precision(readProportion, 1) + "_V1.txt";
+        filePath = "../src/test/dataset/workload/"+workloadDataName+"_i" + to_string_with_precision(insertProportion, 1) +
+                   "_i" + to_string_with_precision(readProportion, 1) + "_V1_"+initDataName+".txt";
     } else {
-        filePath = "../src/test/dataset/"+workloadDataName+"_r"+ to_string_with_precision(readProportion, 1) +
-                   "_i" + to_string_with_precision(insertProportion, 1) + "_V2.txt";
+        filePath = "../src/test/dataset/workload/"+workloadDataName+"_r"+ to_string_with_precision(readProportion, 1) +
+                   "_i" + to_string_with_precision(insertProportion, 1) + "_V2_"+initDataName+".txt";
     }
     writeToWorkloadFile(filePath, dataset);
 
