@@ -13,8 +13,13 @@
 
 using namespace std;
 
-static const int LIMIT_SIZE_M1 = 3;
-static const int LIMIT_SIZE_M2 = 3;
+//static const int LIMIT_SIZE_M1 = 3;
+//static const int LIMIT_SIZE_M2 = 3;
+
+static const int LIMIT_SIZE_NORMAL_M1 = 5;
+static const int LIMIT_SIZE_DELAY_M1 = 8;
+static const int LIMIT_SIZE_NORMAL_M2 = 5;
+static const int LIMIT_SIZE_DELAY_M2 = 7;
 
 class ImmutableMemtableController {
 public:
@@ -23,21 +28,17 @@ public:
         return instance;
     }
 
-    vector<IMemtable*> normalImmMemtableList_M1;
-    vector<IMemtable*> delayImmMemtableList_M1;
-    vector<IMemtable*> normalImmMemtableList_M2;
-    vector<IMemtable*> delayImmMemtableList_M2;
-    queue<IMemtable*> compactionQueue;
+    vector<IMemtable*> normalImmMemtableList_M1; // limit LIMIT_SIZE_NORMAL_M1
+    vector<IMemtable*> delayImmMemtableList_M1; // limit LIMIT_SIZE_DELAY_M1
+    vector<IMemtable*> normalImmMemtableList_M2; // limit LIMIT_SIZE_NORMAL_M2
+    vector<IMemtable*> delayImmMemtableList_M2; // limit LIMIT_SIZE_DELAY_M2
+    queue<IMemtable*> compactionQueue; // if M1 full -> insert compaction Queue
     queue<IMemtable*> flushQueue;
     CompactProcessor* compactProcessor;
     MockDisk& disk;
 
-    int normalMemtableNum_M1 = 2;
-    int delayMemtableNum_M1 = normalMemtableNum_M1 * 2;
     int read(uint64_t key);
     map<uint64_t, int> range(uint64_t start, uint64_t end);
-    bool isNormalMemsFull();
-    bool isDelayMemsFull();
     void putMemtableToQueue(IMemtable*);
     void decreaseTTL();
     void erase(vector<IMemtable*>& v, IMemtable* memtable);
@@ -51,8 +52,6 @@ private:
     void operator=(const ImmutableMemtableController&) = delete;
 
     void compaction();
-    int getM1ListsSize();
-    int getM2ListsSize();
     int diskRead(uint64_t key);
     map<uint64_t, int> diskRange(uint64_t start, uint64_t end);
     map<uint64_t, int> rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v);
