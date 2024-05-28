@@ -13,7 +13,6 @@ int main(int argc, char* argv[]) {
     deque<Record> datasetA = workloadA.readFile(filePath);
     workloadA.executeWorkload(datasetA, stoi(initDataNum));
 
-
     MockDisk& disk = MockDisk::getInstance();
     cout<<"\ndisk read 횟수 : "<<disk.readCount<<"\n";
 
