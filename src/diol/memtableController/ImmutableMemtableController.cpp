@@ -17,6 +17,7 @@ map<uint64_t, int> ImmutableMemtableController::rangeInVector(uint64_t start, ui
         for(const auto& entry : imm->mem){
             if(entry.first>=start && entry.first <= end){
                 segment[entry.first] = entry.second;
+                imm->increaseAccessCount(1);
 //                flag = true;
             }
         }
