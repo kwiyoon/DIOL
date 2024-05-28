@@ -7,4 +7,5 @@ DelayMemtable::DelayMemtable(int id) {
     this->lastKey = static_cast<uint64_t>(-1);
     this->memtableId = id;
     this->memTableStatus = WORKING;
+    this->memtableSize = 512 * 1024;
 }

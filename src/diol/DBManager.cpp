@@ -48,7 +48,7 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
         immutableController.decreaseTTL();
         updateKeys(normalPtr);
         normalPtr->setDelayCount(DelayDetector::detect(normalPtr));
-        return activeController.updateNormalMem(getIdAndIncrement());
+        return activeController.updateNormalMem(getIdAndIncrement(), normalPtr->lastKey);
     } else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
         updateKeys(delayPtr);
         return activeController.updateDelayMem(getIdAndIncrement());

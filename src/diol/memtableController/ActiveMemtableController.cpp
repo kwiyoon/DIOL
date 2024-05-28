@@ -1,21 +1,19 @@
 #include "ActiveMemtableController.h"
 #include "DBManager.h"
 
+//int delayC = 0;
 bool ActiveMemtableController::insert(uint64_t key, int value) {
     if(!isDelayData(key)) {
         return insertData(*activeNormalMemtable, key, value);
     }
     else {
+//        cout<<"delay: "<<++delayC<<endl;
         return insertData(*activeDelayMemtable, key, value);
     }
 }
 
 bool ActiveMemtableController::isDelayData(uint64_t key) {
-    if(activeNormalMemtable->mem.empty()){
-        return false;
-    }else {
-        return activeNormalMemtable->mem.begin()->first > key;
-    }
+    return activeNormalMemtable->startKey > key;
 }
 
 bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int value){
@@ -23,10 +21,12 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
     if (memtable.isFull()) {
         try {
             dbmanager.transformM0ToM1(&memtable);
-            activeNormalMemtable->memTableStatus = INSERTING;
             if(activeNormalMemtable->startKey>key){  //delay data
+                activeDelayMemtable->memTableStatus = INSERTING;
                 insertData(*activeDelayMemtable, key, value);
+                activeDelayMemtable->memTableStatus = WORKING;
             }else{ //normal data
+                activeNormalMemtable->memTableStatus = INSERTING;
                 activeNormalMemtable->setStartKey(key);
                 activeNormalMemtable->put(key, value);
                 activeNormalMemtable->memTableStatus = WORKING;
@@ -43,8 +43,9 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
     return true;
 }
 
-NormalMemtable* ActiveMemtableController::updateNormalMem(int id) {
+NormalMemtable* ActiveMemtableController::updateNormalMem(int id, uint64_t lastKey) {
     activeNormalMemtable = new NormalMemtable(id);
+    activeNormalMemtable->setStartKey(lastKey);
     return activeNormalMemtable;
 }
 

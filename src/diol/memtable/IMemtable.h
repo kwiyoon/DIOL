@@ -44,8 +44,8 @@ public:
     MemTableStatus memTableStatus;
     uint64_t startKey;
     uint64_t lastKey;
-//    size_t memtableSize = 16 * 1024 * 1024;
-    size_t memtableSize = 4 * 1024; // delay_size * 4 = normal_size
+//    size_t memtableSize = 4 * 1024;
+    size_t memtableSize = 0;
     int memtableId;
     int access = 0;     // IMM만 사용
     int ttl;       // IMM만 사용
@@ -70,14 +70,13 @@ public:
 class DelayMemtable : public IMemtable {
 public:
     DelayMemtable(int id);
-    size_t memtableSize = (4 * 1024)/16; // Normal/4
+
 };
 
 class NormalMemtable : public IMemtable {
 public:
     NormalMemtable(int id);
     void setDelayCount(int cnt);
-    size_t memtableSize = 4 * 1024;
 
     int delayCount = 0; // Normal IMM만 사용
 };

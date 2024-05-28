@@ -18,7 +18,7 @@ public:
     bool insert(uint64_t key, int value);
     bool isDelayData(uint64_t key);
     bool insertData(IMemtable& memtable, uint64_t key, int value);
-    NormalMemtable* updateNormalMem(int id);
+    NormalMemtable* updateNormalMem(int id, uint64_t lastKey);
     DelayMemtable* updateDelayMem(int id);
 private:
     ActiveMemtableController(){

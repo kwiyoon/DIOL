@@ -65,9 +65,11 @@ map<uint64_t, int> ImmutableMemtableController::range(uint64_t start, uint64_t e
 
 void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
     if(LIMIT_SIZE_NORMAL_M1*0.8 <= normalImmMemtableList_M1.size()){
+//        cout<<"putMemtableToM1List "<<LIMIT_SIZE_NORMAL_M1*0.8 << ","<< normalImmMemtableList_M1.size()<<endl;
         compaction();
     }
     if(LIMIT_SIZE_DELAY_M1*0.8 <= delayImmMemtableList_M1.size()){
+//        cout<<"convertOldDelayToM2"<<endl;
         convertOldDelayToM2();
     }
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
