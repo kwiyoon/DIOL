@@ -1,10 +1,11 @@
 #include "Workload.h"
+#include <queue>
 
 using namespace std;
 
 //파일에 있던 정보를 읽어와서 데이터셋 생성
-vector<Record> Workload::readFile(const string& filePath) {
-    vector<Record> dataset;
+deque<Record> Workload::readFile(const string& filePath) {
+    deque<Record> dataset;
     ifstream file(filePath.c_str());
     if (!file.is_open()) {
         cerr << "ERR: 파일을 열 수 없습니다 " << filePath << endl;
@@ -54,7 +55,7 @@ vector<Record> Workload::readFile(const string& filePath) {
     file.close();
     return dataset;
 }
-void Workload::executeInsertWorkload(vector<Record>& dataset, int start, int end) {
+void Workload::executeInsertWorkload(deque<Record>& dataset, int start, int end) {
 //    cout << "Workload Insert 작업 실행 시작\n";
     for (int i = start; i <= end; ++i) {
         if (dataset[i].op == "INSERT") {
@@ -71,7 +72,7 @@ void Workload::executeInsertWorkload(vector<Record>& dataset, int start, int end
 //    cout << "Workload Insert 작업 실행 끝\n";
 }
 
-void Workload::executeMixedWorkload(vector<Record>& dataset, int start, int end) {
+void Workload::executeMixedWorkload(deque<Record>& dataset, int start, int end) {
 //    cout << "Workload Mixed 작업 실행 시작\n";
     for (int i = start; i < end; ++i) {
         if (dataset[i].op == "READ") {
@@ -95,7 +96,7 @@ void Workload::executeMixedWorkload(vector<Record>& dataset, int start, int end)
 //    cout << "Workload Mixed 작업 실행 끝\n";
 }
 
-void Workload::executeWorkload(vector<Record>& dataset, int initDataNum) {
+void Workload::executeWorkload(deque<Record>& dataset, int initDataNum) {
 //    cout << "workload 실행 시작\n";
 
     executeInsertWorkload(dataset, 0, initDataNum/2);
@@ -131,6 +132,7 @@ void Workload::makeSSTable() {
     string filename="../src/test/SSTable/NormalSStable";
 
     MockDisk& disk = MockDisk::getInstance();
+
     for(auto sstable:disk.normalSSTables){
 
         ofstream outputFile(filename);
@@ -173,24 +175,29 @@ void Workload::makeSSTable() {
 
 }
 
-/*void Workload::printDelayData(){
+void Workload::printDelayData(){
     MockDisk& disk = MockDisk::getInstance();
+    ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
+    ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
 
-    int delaySSTableNum= tree.Disk->delaySSTables.size();
+    int delaySSTableNum= disk.delaySSTables.size();
     int delaySSTableSize=0;
+
     if(delaySSTableNum!= 0){
-        delaySSTableSize= tree.Disk->delaySSTables.front()->ss.size();
+        delaySSTableSize = disk.delaySSTables.front()->rows.size();
     }
 
-    cout<<"the number of delay data in Disk : "<<delaySSTableNum*delaySSTableSize<<"\n";
+    cout<<"the number of delay data in Disk : "<<delaySSTableNum * delaySSTableSize<<"\n";
 
     int delayImmMemtableNum=0;
-    int delayActiveMemtableNum=tree.activeDelayMemtable->mem.size();
-    for(auto memtable : tree.immMemtableList){
-        if(memtable->type=='D') delayImmMemtableNum++;
+    int delayActiveMemtableNum=actCon.activeDelayMemtable->mem.size();
+    for(auto memtable : immCon.delayImmMemtableList_M1){
+        delayImmMemtableNum++;
+    }
+    for(auto memtable : immCon.delayImmMemtableList_M2){
+        delayImmMemtableNum++;
     }
 
     cout<<"the number of delay data in Memory : "<< delayImmMemtableNum*delaySSTableSize+delayActiveMemtableNum<<"\n";
 
 }
- */

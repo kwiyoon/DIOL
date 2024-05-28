@@ -22,8 +22,8 @@
 class Workload {
 public:
     vector<int> op;    //INSERT: 0, READ: 1, RANGE: 2
-    vector<uint64_t> workloadKey;
-    vector<pair<uint64_t, uint64_t> > workloadRangeKey;
+    deque<uint64_t> workloadKey;
+    deque<pair<uint64_t, uint64_t> > workloadRangeKey;
     DBManager& tree;
     MockDisk& disk;
 
@@ -31,10 +31,10 @@ public:
 
     Workload(DBManager& _tree, MockDisk& _disk) : tree(_tree), disk(_disk) {}
     Workload(const Workload&) = delete;
-    vector<Record> readFile(const string& filePath);
-    void executeInsertWorkload(vector<Record>& dataset, int start, int end);
-    void executeMixedWorkload(vector<Record>& dataset, int start, int end);
-    void executeWorkload(vector<Record>& dataset, int initDataNum);
+    deque<Record> readFile(const string& filePath);
+    void executeInsertWorkload(deque<Record>& dataset, int start, int end);
+    void executeMixedWorkload(deque<Record>& dataset, int start, int end);
+    void executeWorkload(deque<Record>& dataset, int initDataNum);
     void cleanup();
     DBManager* getTree();
     void deleteAllSSTable();
