@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     double rangeReadProportion = stod(argv[6]); // range 읽기 작업 비율
 
     string initfilePath = "../src/test/dataset/" + initDataName+".txt";
-    vector<Record> initDataSet = workloadA.readFile(initfilePath);
+    deque<Record> initDataSet = workloadA.readFile(initfilePath);
 
     factory.generateWorkloadDataset(initDataName, initDataSet,workloadDataName, readProportion, insertProportion, singleReadProportion, rangeReadProportion);
 }

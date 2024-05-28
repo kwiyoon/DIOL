@@ -21,7 +21,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
     int numSegments= segmentDataNum/20;  //하이퍼파라미터
     int iteration = 0; // 진행률 표시를 위한 변수
 
-    std::vector<int> indices(segmentDataNum);
+    std::deque<int> indices(segmentDataNum);
     std::iota(indices.begin(), indices.end(), 0);
 
     // Randomly shuffle the indices
@@ -29,7 +29,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
     std::mt19937 g(rd());
     std::shuffle(indices.begin(), indices.end(), g);
 
-    std::vector<std::vector<int>> outOfOrderKeysPerSegment(numSegments); //segment 묶음 단위 out of order 데이터들을 저장할 벡터
+    std::deque<std::deque<int>> outOfOrderKeysPerSegment(numSegments); //segment 묶음 단위 out of order 데이터들을 저장할 벡터
 
 
 //    srand(time(0));
@@ -39,18 +39,20 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
 
     /**1~dataNum 범위 dataset 초기화
      * */
-    vector<uint64_t> dataSet(dataNum);
+    deque<uint64_t> dataSet(dataNum);
 
-    cout<< "dataSet 1부터 dataNum까지 초기화\n";
+//    cout<< "dataSet 1부터 dataNum까지 초기화\n";
     std::iota(dataSet.begin(), dataSet.end(), 1);
-    cout<< "dataSet 초기화 완료\n";
-
+//    cout<< "dataSet 초기화 완료\n";
 
 
     /**out of order data 각 segment 크기 설정
      * */
-    cout<<"생성되어야할 segment 개수 : "<<numSegments<<"\n";
-    int count25Percent = numSegments * 0.25;
+    int count25Percent = std::round(numSegments * 0.25);
+    int count50Percent = std::round(numSegments * 0.50);
+    int totalAssigned = 2 * count25Percent + count50Percent;
+
+    // 비율에 따라 세그먼트 크기 추가
     for (int i = 0; i < count25Percent; ++i) {
         sizes.push_back(10);
     }
@@ -59,14 +61,17 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
         sizes.push_back(30);
     }
 
-    int count50Percent = numSegments * 0.50;
     for (int i = 0; i < count50Percent; ++i) {
         sizes.push_back(20);
     }
 
-    //생성되는 segment 개수가 1:1:2로 정수로 나누어지지 않는 경우 계산 보정
-    if(count25Percent+count25Percent+count50Percent!=numSegments){
-        sizes.push_back(20);
+    // 생성되는 segment 개수가 정수로 나누어지지 않는 경우 계산 보정
+    if(totalAssigned < numSegments) {
+        for (int i = 0; i < numSegments - totalAssigned; ++i) {
+            sizes.push_back(20); // 남은 부분을 20으로 채웁니다. 필요시 다른 값으로 대체 가능
+        }
+    } else if(totalAssigned > numSegments) {
+        sizes.resize(numSegments); // 초과한 부분을 잘라냅니다.
     }
 
     std::shuffle(sizes.begin(), sizes.end(), g);
@@ -82,7 +87,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
         std::uniform_int_distribution<> nextDis(start, end-sizes[i]); // currentIdx 부터 distance-(생성될 segment 사이즈) 사이에서 seg에 들어갈 첫번째 delay key선정
         int delayedKey = nextDis(g);
 
-        std::cout << "\n구간 " << i + 1 << " (" << sizes[i] << "개) : " << delayedKey << " ~ " << delayedKey + sizes[i] - 1 << "\n";
+//        std::cout << "\n구간 " << i + 1 << " (" << sizes[i] << "개) : " << delayedKey << " ~ " << delayedKey + sizes[i] - 1 << "\n";
 
         start = end+1;
         end = start+distance-1;
@@ -115,7 +120,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
 
     /**out of order 단일 key 선정
      * */
-    vector<uint64_t> remainingKeys(dataSet.begin(), dataSet.end());
+    deque<uint64_t> remainingKeys(dataSet.begin(), dataSet.end());
     srand(static_cast<unsigned>(std::time(0))); // 난수 생성기 초기화
 
     std::unordered_set<uint64_t> randomKeys;
@@ -136,7 +141,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
 
     /** dataset에 단일 out of order data 추가
      * */
-    cout<<"\n>> 단일 Out of order data 추가\n\n";
+//    cout<<"\n>> 단일 Out of order data 추가\n\n";
     for(const auto &key : randomKeys) {
         int randomChoice = rand() % 100 + 1;
         if (randomChoice <= 30) {
@@ -203,8 +208,10 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
             }
         }
         iteration++;
-        if ( iteration % (outOfOrderKeysPerSegment.size() / 10) == 0) {
-            INT_LOG_PROGRESS(iteration, outOfOrderKeysPerSegment.size());
+        if (outOfOrderKeysPerSegment.size() > 0 && (outOfOrderKeysPerSegment.size() / 10) > 0) {
+            if (iteration % (outOfOrderKeysPerSegment.size() / 10) == 0) {
+                INT_LOG_PROGRESS(iteration, outOfOrderKeysPerSegment.size());
+            }
         }
     }
 
@@ -219,7 +226,7 @@ void DataFactory:: generateDelayedDataset(string& dataSetName, int dataNum, doub
     }
 }
 
-void DataFactory::writeToInitFile(string filePath, vector<uint64_t>& dataset) {
+void DataFactory::writeToInitFile(string filePath, deque<uint64_t>& dataset) {
     ofstream outputFile(filePath);
     std::cout << "\n>> Write to Init File Progress \n\n";
 
@@ -241,8 +248,9 @@ void DataFactory::writeToInitFile(string filePath, vector<uint64_t>& dataset) {
 
 
 /**File에 Workload 쓰기 함수*/
-void DataFactory::writeToWorkloadFile(string filePath, vector<Record>& dataset) {
+void DataFactory::writeToWorkloadFile(string filePath, deque<Record>& dataset) {
     ofstream outputFile(filePath);
+    cout<<"filePath: "<<filePath<<endl;
     if (!outputFile.is_open()) {
         cerr << "workload dataset 파일 열기 오류" << endl;
         return;
@@ -270,9 +278,9 @@ std::string to_string_with_precision(double value, int precision) {
 }
 
 /** Workload 데이터 생성 함수*/
-void DataFactory::generateWorkloadDataset(string initDataName, vector<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion) {
+void DataFactory::generateWorkloadDataset(string initDataName, deque<Record>& initDataSet, string& workloadDataName, double readProportion, double insertProportion, double singleReadProportion, double rangeProportion) {
 
-    vector<Record> dataset;
+    deque<Record> dataset;
     int initFileRecordCount = initDataSet.size();   //전체 데이터셋 개수
     int txnFileRecordCount = initFileRecordCount/2; // 워크로드의 INSERT 작업 개수(전체 데이터 셋의 절반)
     int singleReadCount = txnFileRecordCount * (readProportion/insertProportion) * singleReadProportion; // 단일 읽기 작업 해야할 총 횟수
