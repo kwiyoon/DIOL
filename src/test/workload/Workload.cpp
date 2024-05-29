@@ -115,10 +115,10 @@ void Workload::deleteAllSSTable() {
     std::string directoryPath = "../src/test/SSTable"; // SSTable 폴더의 경로
     try {
         // 디렉터리 내의 모든 파일 순회
-        for (const auto& entry : std::__fs::filesystem::directory_iterator(directoryPath)) {
-            std::__fs::filesystem::remove(entry.path()); // 파일 삭제
+        for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
+            std::filesystem::remove(entry.path()); // 파일 삭제
         }
-    } catch (const std::__fs::filesystem::filesystem_error& e) {
+    } catch (const std::filesystem::filesystem_error& e) {
         cerr << "Error: " << e.what() << endl;
     }
 }
@@ -141,7 +141,7 @@ void Workload::makeSSTable() {
             return;
         }
 
-        filename+=  to_string(++fileCounter) + ".txt";
+        filename= "../src/test/SSTable/NormalSStable"+ to_string(++fileCounter) + ".txt";
         outputFile<<sstable->rows.size()<<"\n";  //사이즈
         outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
         for (const auto& pair : sstable->rows) {
@@ -163,7 +163,7 @@ void Workload::makeSSTable() {
             return;
         }
 
-        filename+=  to_string(++fileCounter) + ".txt";
+        filename="../src/test/SSTable/DelaySStable"+ to_string(++fileCounter) + ".txt";
         outputFile<<sstable->rows.size()<<"\n";  //사이즈
         outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
         for (const auto& pair : sstable->rows) {
