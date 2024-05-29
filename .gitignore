@@ -21,4 +21,5 @@ tests/lib/
 
 tests/test_example.cpp
 
-./test/dataset
+./src/test/SSTable
+./src/test/dataset
