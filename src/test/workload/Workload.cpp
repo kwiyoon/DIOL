@@ -125,15 +125,16 @@ void Workload::deleteAllSSTable() {
 
 void Workload::makeSSTable() {
 
+    MockDisk& disk = MockDisk::getInstance();
+
     deleteAllSSTable(); //기존 파일 삭제
 
     int fileCounter=0;
 
-    string filename="../src/test/SSTable/NormalSStable";
-
-    MockDisk& disk = MockDisk::getInstance();
+    string filename="../src/test/SSTable";
 
     for(auto sstable:disk.normalSSTables){
+
 
         ofstream outputFile(filename);
         if (!outputFile.is_open()) {
@@ -141,7 +142,7 @@ void Workload::makeSSTable() {
             return;
         }
 
-        filename= "../src/test/SSTable/NormalSStable"+ to_string(++fileCounter) + ".txt";
+        filename="/NormalSStable"+ to_string(++fileCounter) + ".txt";
         outputFile<<sstable->rows.size()<<"\n";  //사이즈
         outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
         for (const auto& pair : sstable->rows) {
@@ -153,9 +154,11 @@ void Workload::makeSSTable() {
 
     fileCounter=0;
 
-    filename="../src/test/SSTable/DelaySStable";
+    
 
     for(auto sstable:disk.delaySSTables){
+
+    
 
         ofstream outputFile(filename);
         if (!outputFile.is_open()) {
@@ -163,7 +166,7 @@ void Workload::makeSSTable() {
             return;
         }
 
-        filename="../src/test/SSTable/DelaySStable"+ to_string(++fileCounter) + ".txt";
+        filename="/DelaySStable"+ to_string(++fileCounter) + ".txt";
         outputFile<<sstable->rows.size()<<"\n";  //사이즈
         outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
         for (const auto& pair : sstable->rows) {
@@ -181,23 +184,25 @@ void Workload::printDelayData(){
     ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
 
     int delaySSTableNum= disk.delaySSTables.size();
-    int delaySSTableSize=0;
+    int delaySSTableNum=0;
 
-    if(delaySSTableNum!= 0){
-        delaySSTableSize = disk.delaySSTables.front()->rows.size();
+    for(auto sstable : disk.delaySSTables){
+
+        delaySSTableNum+=sstable->rows.size();
+
     }
-
-    cout<<"the number of delay data in Disk : "<<delaySSTableNum * delaySSTableSize<<"\n";
-
+    
     int delayImmMemtableNum=0;
     int delayActiveMemtableNum=actCon.activeDelayMemtable->mem.size();
     for(auto memtable : immCon.delayImmMemtableList_M1){
-        delayImmMemtableNum++;
+        delayImmMemtableNum+=memtable->mem.size();
     }
     for(auto memtable : immCon.delayImmMemtableList_M2){
-        delayImmMemtableNum++;
+       delayImmMemtableNum+=memtable->mem.size();
     }
 
-    cout<<"the number of delay data in Memory : "<< delayImmMemtableNum*delaySSTableSize+delayActiveMemtableNum<<"\n";
+    cout<<"delay data in Memory : "<< delayImmMemtableNum+delayActiveMemtableNum<<"\n";
+    cout<<"delay data in Disk : "<<delaySSTableNum<<"\n";
+
 
 }
