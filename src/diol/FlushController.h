@@ -5,6 +5,8 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include "memtable/IMemtable.h"
 #include "memtableController/ImmutableMemtableController.h"
 #include "MockDisk.h"
@@ -38,7 +40,7 @@ public:
 
     // 작업 완료를 대기
     void waitForCompletion() {
-        std::unique_lock<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         condition.wait(lock, [this] { return taskCompleted; });
     }
 
@@ -53,7 +55,7 @@ private:
     ImmutableMemtableController& immMemtableController;
     std::condition_variable condition;
     bool taskCompleted;
-    mutex mutex;
+    mutex m_mutex;
     MockDisk& disk;
 
     IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
@@ -64,7 +66,7 @@ private:
             checkTimeout(t);
         doFlush();
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            std::lock_guard<std::mutex> lock(m_mutex);
             taskCompleted = true;
         }
         condition.notify_all();

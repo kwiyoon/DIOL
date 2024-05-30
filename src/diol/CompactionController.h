@@ -6,6 +6,8 @@
 #include <chrono>
 #include <atomic>
 #include <iostream>
+#include <condition_variable>
+#include <mutex>
 
 #define LOG_STR(str) \
     cout<<str<<endl;
