@@ -9,3 +9,8 @@ DelayMemtable::DelayMemtable(int id) {
     this->memTableStatus = WORKING;
     this->memtableSize = 512 * 1024;
 }
+
+bool DelayMemtable::isFull(){
+    size_t incomingDataSize = sizeof(uint64_t) + sizeof(int);
+    return (getSize() + incomingDataSize) >= memtableSize;
+}
