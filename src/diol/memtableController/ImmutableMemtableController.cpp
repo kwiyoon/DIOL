@@ -82,7 +82,7 @@ void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
 
 int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& v){
     for (auto imm : v) {
-//        std::unique_lock<std::mutex> lock(imm->mutex);
+//        std::unique_lock<std::immMutex> lock(imm->immMutex);
         MemTableStatus preStatus = imm->memTableStatus;
         imm->memTableStatus = READING;
         if(imm->startKey > key || imm->lastKey < key) continue;
@@ -155,7 +155,7 @@ void ImmutableMemtableController::compaction() {
     IMemtable *normalMemtable;
     {
         normalMemtable = compactionQueue.front();;
-//        std::unique_lock<std::mutex> lock(normalMemtable->mutex);
+//        std::unique_lock<std::immMutex> lock(normalMemtable->immMutex);
 
         if (!delayImmMemtableList_M1.empty()) {
             IMemtable *delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);

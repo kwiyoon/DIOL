@@ -13,6 +13,7 @@ void NormalMemtable::setDelayCount(int cnt) {
     delayCount = cnt;
 }
 
+
 bool NormalMemtable::isFull(){
     size_t incomingDataSize = sizeof(uint64_t) + sizeof(int);
     return (getSize() + incomingDataSize) >= (memtableSize * 0.8);

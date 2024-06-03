@@ -50,7 +50,7 @@ public:
     int memtableId;
     int access = 0;     // IMM만 사용
     int ttl;       // IMM만 사용
-    mutex mutex;
+    mutex immMutex;
 
 //    static const int STEP1_TTL = INIT_TTL/2;
     static const int INIT_TTL = 10;
@@ -61,7 +61,6 @@ public:
     bool put(uint64_t key, int value);
     virtual bool isFull();
     size_t getSize();
-
     void initM1();
     void initM2();
     bool setState(State state);

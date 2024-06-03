@@ -23,7 +23,7 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
             if(activeNormalMemtable->startKey>key){  //delay data
                 insertData(*activeDelayMemtable, key, value);
             }else{ //normal data
-//                unique_lock<mutex> lock(activeNormalMemtable->mutex);
+//                unique_lock<immMutex> lock(activeNormalMemtable->immMutex);
                 activeNormalMemtable->memTableStatus = INSERTING;
                 activeNormalMemtable->setStartKey(key);
                 activeNormalMemtable->put(key, value);
@@ -35,7 +35,7 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
             cerr << e.what() << "\n";
         }
     }
-//    unique_lock<mutex> lock(memtable.mutex);
+//    unique_lock<immMutex> lock(memtable.immMutex);
     memtable.memTableStatus = INSERTING;
     memtable.put(key, value);
     memtable.memTableStatus = WORKING;

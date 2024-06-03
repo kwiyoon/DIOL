@@ -25,7 +25,7 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
     // TODO (논의) : 사실 INSERTING 전에 lock 걸고 작업후 해제하기 때문에.. 필요없을 수도 있음.
     //    while(memtable->memTableStatus==INSERTING);
 //    {
-    std::unique_lock<std::mutex> lock(memtable->mutex);
+    std::unique_lock<std::mutex> lock(memtable->immMutex);
 
     ActiveMemtableController& activeController = ActiveMemtableController::getInstance();
     ImmutableMemtableController& immutableController = ImmutableMemtableController::getInstance();

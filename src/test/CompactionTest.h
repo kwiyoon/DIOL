@@ -16,7 +16,7 @@
 #include <list>
 
 using namespace std;
-namespace fs = std::__fs::filesystem;
+namespace fs = std::filesystem;
 
 class CompactionTest {
 

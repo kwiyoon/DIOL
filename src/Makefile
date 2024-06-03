@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -lstdc++fs -I./src
+CXXFLAGS = -std=c++17 -I./diol -I./diol/memtable -I./diol/memtableController -I./test
 
 # 타겟 정의
 all: testDIOL
@@ -18,6 +18,9 @@ SRCS = \
     diol/FlushController.cpp \
     diol/MockDisk.cpp \
     diol/SSTable.cpp \
+    test/workload/Workload.cpp\
+    test/CompactionTest.cpp\
+    test/DataFactory.cpp\
     testDIOL.cpp
 
 # 오브젝트 파일 목록

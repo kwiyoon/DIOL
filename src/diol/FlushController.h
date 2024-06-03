@@ -5,6 +5,8 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include "memtable/IMemtable.h"
 #include "memtableController/ImmutableMemtableController.h"
 #include "MockDisk.h"
@@ -20,7 +22,7 @@ public:
     }
     // 시작 메소드
     void start(Type t) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         workers.emplace_back(&FlushController::run, this, t);
     }
 
@@ -28,7 +30,7 @@ public:
 
     // 작업 완료를 대기
     void waitForCompletion() {
-        std::unique_lock<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         condition.wait(lock, [this] { return taskCompleted; });
     }
 
@@ -57,9 +59,8 @@ private:
     ImmutableMemtableController& immMemtableController;
     std::condition_variable condition;
     bool taskCompleted;
-    std::mutex mutex;
     std::mutex flushQueueMutex;
-
+    mutex m_mutex;
     MockDisk& disk;
     IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
 
@@ -68,7 +69,7 @@ private:
 
         // 스레드 종료를 위한 clean up
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            std::lock_guard<std::mutex> lock(m_mutex);
             auto it = std::find_if(workers.begin(), workers.end(), [](std::thread &worker) {
                 return worker.get_id() == std::this_thread::get_id();
             });
@@ -102,7 +103,7 @@ private:
             if (memtable != nullptr) {
                 // memtable 락
                 {
-                    std::unique_lock<std::mutex> memtableLock(memtable->mutex);
+                    std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
                     while (memtable->memTableStatus == READING);
                     memtable->memTableStatus = FLUSHING;
                 }
