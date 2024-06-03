@@ -5,7 +5,7 @@
 #ifndef IOTDB_DBManager_WORKLOAD_H
 #define IOTDB_DBManager_WORKLOAD_H
 
-#include "../DataFactory.h"
+//#include "../DataFactory.h"
 #include "../../diol/DBManager.h"
 #include <iostream>
 #include <string>
@@ -31,15 +31,21 @@ public:
 
     Workload(DBManager& _tree, MockDisk& _disk) : tree(_tree), disk(_disk) {}
     Workload(const Workload&) = delete;
-    deque<Record> readFile(const string& filePath);
-    void executeInsertWorkload(deque<Record>& dataset, int start, int end);
-    void executeMixedWorkload(deque<Record>& dataset, int start, int end);
-    void executeWorkload(deque<Record>& dataset, int initDataNum);
+    int extractHalfLinesFromFilename(const string& filePath);
+    void readLines(ifstream& file, std::list<Record>& dataset, int linesToRead);
+    list<Record> readFileFromStart(const std::string& filePath, int linesToRead);
+    list<Record> readFileWhole(const string& filePath);
+    void executeInsertWorkload(list<Record>& dataset, int start, int end);
+    void executeMixedWorkload(list<Record>& dataset, int start, int end);
+    void executeWorkload(list<Record>& dataset, bool isMixedWorkload);
+
+
     void cleanup();
     DBManager* getTree();
     void deleteAllSSTable();
     void makeSSTable();
     void printDelayData();
-
+private:
+    int iteration=0;
 };
 #endif //IOTDB_LSM_WORKLOAD_H
