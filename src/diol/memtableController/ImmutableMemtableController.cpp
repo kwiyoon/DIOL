@@ -185,15 +185,19 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
     if(LIMIT_SIZE_NORMAL_M2*0.8 <= normalImmMemtableList_M2.size()){
         LOG_STR("==========full!!============");
+        if(flushQueue.empty())
+            flushController->checkTimeout(N);
         flushController->start(N);
-        flushController->waitForCompletion();
-        flushController->stop();
+//        flushController->waitForCompletion();
+//        flushController->stop();
     }
     if(LIMIT_SIZE_DELAY_M2*0.8 <= delayImmMemtableList_M2.size()){
         LOG_STR("==========full!!============");
+        if(flushQueue.empty())
+            flushController->checkTimeout(D);
         flushController->start(D);
-        flushController->waitForCompletion();
-        flushController->stop();
+//        flushController->waitForCompletion();
+//        flushController->stop();
     }
 
     memtable->initM2();
