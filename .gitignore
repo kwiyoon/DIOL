@@ -20,3 +20,5 @@ tests/lib/
 .DS_Store
 
 tests/test_example.cpp
+src/test/dataset
+src/test/SSTable
