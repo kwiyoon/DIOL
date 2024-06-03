@@ -22,7 +22,11 @@ int DBManager::getIdAndIncrement(){
 }
 
 IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
-    while(memtable->memTableStatus==INSERTING);
+    // TODO (논의) : 사실 INSERTING 전에 lock 걸고 작업후 해제하기 때문에.. 필요없을 수도 있음.
+    //    while(memtable->memTableStatus==INSERTING);
+//    {
+    std::unique_lock<std::mutex> lock(memtable->mutex);
+
     ActiveMemtableController& activeController = ActiveMemtableController::getInstance();
     ImmutableMemtableController& immutableController = ImmutableMemtableController::getInstance();
 
@@ -42,6 +46,7 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
             memtablePtr->setLastKey(maxKey);
         }
         immutableController.putMemtableToM1List(memtablePtr);
+        lock.unlock();
     };
 
     if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
@@ -54,4 +59,5 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
         return activeController.updateDelayMem(getIdAndIncrement());
     }else
         throw logic_error("DBManager::transformM0ToM1 주소비교.. 뭔가 문제가 있는 듯 하오.");
+//    }
 }
