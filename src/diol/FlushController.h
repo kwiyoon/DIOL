@@ -62,7 +62,7 @@ private:
     void run(Type t){
         if(immMemtableController.flushQueue.empty())
             checkTimeout(t);
-        doFlush();
+        doFlush(t);
         {
             std::lock_guard<std::mutex> lock(mutex);
             taskCompleted = true;
@@ -71,12 +71,13 @@ private:
 
     }
 
-    void doFlush() {
         if (!immMemtableController.flushQueue.empty()) {
             IMemtable *memtable = immMemtableController.flushQueue.front();
             immMemtableController.flushQueue.pop();
-            disk.flush(memtable);
-//            delete memtable;
+    void doFlush(Type t) {
+            if (disk.flush(memtable, t)) {
+                delete memtable;
+            }
         }
     }
 };
