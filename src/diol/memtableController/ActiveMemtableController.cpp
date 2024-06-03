@@ -7,7 +7,6 @@ bool ActiveMemtableController::insert(uint64_t key, int value) {
         return insertData(*activeNormalMemtable, key, value);
     }
     else {
-//        cout<<"delay: "<<++delayC<<endl;
         return insertData(*activeDelayMemtable, key, value);
     }
 }
@@ -22,24 +21,25 @@ bool ActiveMemtableController::insertData(IMemtable& memtable, uint64_t key, int
         try {
             dbmanager.transformM0ToM1(&memtable);
             if(activeNormalMemtable->startKey>key){  //delay data
-                activeDelayMemtable->memTableStatus = INSERTING;
                 insertData(*activeDelayMemtable, key, value);
-                activeDelayMemtable->memTableStatus = WORKING;
             }else{ //normal data
+                unique_lock<mutex> lock(activeNormalMemtable->mutex);
                 activeNormalMemtable->memTableStatus = INSERTING;
                 activeNormalMemtable->setStartKey(key);
                 activeNormalMemtable->put(key, value);
                 activeNormalMemtable->memTableStatus = WORKING;
+                lock.unlock();
             }
             return true;
         } catch (exception &e) {
             cerr << e.what() << "\n";
         }
     }
+    unique_lock<mutex> lock(memtable.mutex);
     memtable.memTableStatus = INSERTING;
     memtable.put(key, value);
     memtable.memTableStatus = WORKING;
-
+    lock.unlock();
     return true;
 }
 
