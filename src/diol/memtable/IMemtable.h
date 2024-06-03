@@ -56,7 +56,7 @@ public:
     void increaseAccessCount(int cnt);
 
     bool put(uint64_t key, int value);
-    bool isFull();
+    virtual bool isFull();
     size_t getSize();
 
     void initM1();
@@ -70,6 +70,7 @@ public:
 class DelayMemtable : public IMemtable {
 public:
     DelayMemtable(int id);
+    bool isFull() override;
 
 };
 
@@ -77,7 +78,7 @@ class NormalMemtable : public IMemtable {
 public:
     NormalMemtable(int id);
     void setDelayCount(int cnt);
-
+    bool isFull() override;
     int delayCount = 0; // Normal IMM만 사용
 };
 
