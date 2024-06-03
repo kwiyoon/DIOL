@@ -60,6 +60,10 @@ private:
         compactProcessor = new CompactProcessor();
     }
 
+    ~ImmutableMemtableController(){
+        delete flushController;
+    }
+
     ImmutableMemtableController(const ImmutableMemtableController&) = delete;
     void operator=(const ImmutableMemtableController&) = delete;
 
