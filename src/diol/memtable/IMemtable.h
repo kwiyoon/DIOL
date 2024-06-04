@@ -2,6 +2,7 @@
 #define MEMTABLE_H
 
 #include <map>
+#include <mutex>
 
 using namespace std;
 
@@ -49,6 +50,8 @@ public:
     int memtableId;
     int access = 0;     // IMM만 사용
     int ttl;       // IMM만 사용
+    mutex immMutex;
+
 //    static const int STEP1_TTL = INIT_TTL/2;
     static const int INIT_TTL = 10;
 
@@ -69,7 +72,7 @@ public:
 class DelayMemtable : public IMemtable {
 public:
     DelayMemtable(int id);
-    bool isFull();
+    bool isFull() override;
 
 };
 
@@ -77,8 +80,7 @@ class NormalMemtable : public IMemtable {
 public:
     NormalMemtable(int id);
     void setDelayCount(int cnt);
-    bool isFull();
-
+    bool isFull() override;
     int delayCount = 0; // Normal IMM만 사용
 };
 

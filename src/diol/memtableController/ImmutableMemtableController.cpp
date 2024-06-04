@@ -82,6 +82,8 @@ void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
 
 int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& v){
     for (auto imm : v) {
+//        std::unique_lock<std::immMutex> lock(imm->immMutex);
+        MemTableStatus preStatus = imm->memTableStatus;
         imm->memTableStatus = READING;
         if(imm->startKey > key || imm->lastKey < key) continue;
         // 맵에서 키 검색
@@ -91,7 +93,7 @@ int ImmutableMemtableController::readInVector(uint64_t key, vector<IMemtable*>& 
             imm->increaseAccessCount(1);
             return it->second;  // 키를 찾았으면 값 반환
         }
-        imm->memTableStatus = IMMUTABLE;
+        imm->memTableStatus = preStatus;
     }
     return NULL;
 }
@@ -150,18 +152,19 @@ void ImmutableMemtableController::compaction() {
         LOG_STR("start까지 ㄱㅊ");
     }
 
-    IMemtable* normalMemtable = compactionQueue.front();
-    LOG_STR("normalMemtable id: " + to_string(normalMemtable->memtableId));
+    IMemtable *normalMemtable;
+    {
+        normalMemtable = compactionQueue.front();;
+//        std::unique_lock<std::immMutex> lock(normalMemtable->immMutex);
 
+        if (!delayImmMemtableList_M1.empty()) {
+            IMemtable *delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
 
-    if(!delayImmMemtableList_M1.empty()){
-        IMemtable* delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
-
-        transformM1toM2(delaymemtable);
+            transformM1toM2(delaymemtable);
+        }
+        transformM1toM2(normalMemtable);
+        compactionQueue.pop();
     }
-    transformM1toM2(normalMemtable);
-    compactionQueue.pop();
-    LOG_STR("ImmutableMemtableController::compaction 끝!");
 }
 
 void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtable){
@@ -182,15 +185,19 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
 void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
     if(LIMIT_SIZE_NORMAL_M2*0.8 <= normalImmMemtableList_M2.size()){
         LOG_STR("==========full!!============");
+        if(flushQueue.empty())
+            flushController->checkTimeout(N);
         flushController->start(N);
-        flushController->waitForCompletion();
-        flushController->stop();
+//        flushController->waitForCompletion();
+//        flushController->stop();
     }
     if(LIMIT_SIZE_DELAY_M2*0.8 <= delayImmMemtableList_M2.size()){
         LOG_STR("==========full!!============");
+        if(flushQueue.empty())
+            flushController->checkTimeout(D);
         flushController->start(D);
-        flushController->waitForCompletion();
-        flushController->stop();
+//        flushController->waitForCompletion();
+//        flushController->stop();
     }
 
     memtable->initM2();

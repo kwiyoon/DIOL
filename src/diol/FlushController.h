@@ -17,26 +17,16 @@ class ImmutableMemtableController;
 class FlushController {
 public:
     FlushController(ImmutableMemtableController& imm)
-            : running(false), disk(MockDisk::getInstance()),
+            :disk(MockDisk::getInstance()),
               taskCompleted(false), immMemtableController(imm){
     }
     // 시작 메소드
     void start(Type t) {
-        running = true;
-        worker = std::thread(&FlushController::run, this, t);
-//        flush_thread = std::thread(&FlushController::doFlush, this);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        workers.emplace_back(&FlushController::run, this, t);
     }
 
     // 중지 메소드
-    void stop() {
-        running = false;
-        if (worker.joinable()) {
-            worker.join();
-        }
-//        if (flush_thread.joinable()) {
-//            flush_thread.join();
-//        }
-    }
 
     // 작업 완료를 대기
     void waitForCompletion() {
@@ -44,41 +34,84 @@ public:
         condition.wait(lock, [this] { return taskCompleted; });
     }
 
-    ~FlushController() {
-        stop();
+    bool waitAndStop() {
+        if(!workers.empty()){
+            for (auto& worker : workers) {
+                if (worker.joinable()) {
+                    worker.detach();
+                }
+            }
+            workers.clear();
+            workers.shrink_to_fit();
+        }
+
+        condition.notify_all();
     }
 
+    ~FlushController() { }
+
+    void checkTimeout(Type t);
 
 private:
-    std::atomic<bool> running;
-    std::thread worker;
+//    std::atomic<bool> running;
+    vector<thread> workers;
+//    std::thread worker;
     ImmutableMemtableController& immMemtableController;
     std::condition_variable condition;
     bool taskCompleted;
+    std::mutex flushQueueMutex;
     mutex m_mutex;
     MockDisk& disk;
-
     IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
-    void checkTimeout(Type t);
 
     void run(Type t){
-        if(immMemtableController.flushQueue.empty())
-            checkTimeout(t);
-        doFlush();
+        doFlush(t);
+
+        // 스레드 종료를 위한 clean up
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            taskCompleted = true;
+            auto it = std::find_if(workers.begin(), workers.end(), [](std::thread &worker) {
+                return worker.get_id() == std::this_thread::get_id();
+            });
+            if (it != workers.end()) {
+                if (it->joinable()) {
+                    it->detach();  // 스레드를 백그라운드로 돌려서 종료 대기
+                }
+                workers.erase(it);  // 벡터에서 제거
+            }
+            if (workers.empty()) {
+                condition.notify_all();
+            }
         }
-        condition.notify_all();
 
     }
 
-    void doFlush() {
-        if (!immMemtableController.flushQueue.empty()) {
-            IMemtable *memtable = immMemtableController.flushQueue.front();
-            immMemtableController.flushQueue.pop();
-            disk.flush(memtable);
-//            delete memtable;
+    void doFlush(Type t) {
+        while (true) {
+            IMemtable *memtable = nullptr;
+            // flushQueue 락
+            {
+                std::unique_lock<std::mutex> lock(flushQueueMutex);
+                if (!immMemtableController.flushQueue.empty()) {
+                    memtable = immMemtableController.flushQueue.front();
+                    immMemtableController.flushQueue.pop();
+                } else {
+                    break;
+                }
+            }
+
+            if (memtable != nullptr) {
+                // memtable 락
+                {
+                    std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
+                    while (memtable->memTableStatus == READING);
+                    memtable->memTableStatus = FLUSHING;
+                }
+
+                if (disk.flush(memtable, t)) {
+                    delete memtable;
+                }
+            }
         }
     }
 };

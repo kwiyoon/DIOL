@@ -22,8 +22,10 @@ using namespace std;
 
 static const int LIMIT_SIZE_NORMAL_M1 = 5;
 static const int LIMIT_SIZE_DELAY_M1 = 8;
+//static const int LIMIT_SIZE_DELAY_M1 = 4;
 static const int LIMIT_SIZE_NORMAL_M2 = 5;
 static const int LIMIT_SIZE_DELAY_M2 = 7;
+//static const int LIMIT_SIZE_DELAY_M2 = 3;
 
 class FlushController;
 
@@ -56,6 +58,10 @@ public:
 private:
     ImmutableMemtableController() : disk(MockDisk::getInstance()) {
         compactProcessor = new CompactProcessor();
+    }
+
+    ~ImmutableMemtableController(){
+        delete flushController;
     }
 
     ImmutableMemtableController(const ImmutableMemtableController&) = delete;

@@ -81,7 +81,7 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
     return results;
 }
 
-bool MockDisk::flush(IMemtable* memtable) {
+bool MockDisk::flush(IMemtable* memtable, Type t) {
     SSTable* newSSTable = new SSTable(memtable->memtableId);
 
     for (const auto& entry : memtable->mem) {
@@ -91,17 +91,15 @@ bool MockDisk::flush(IMemtable* memtable) {
     newSSTable->setStartKey(newSSTable->rows.begin()->first);
     newSSTable->setLastKey(newSSTable->rows.rbegin()->first);
 
-    if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)) {
-        newSSTable->setType(N);
+    newSSTable->setType(t);
+    if (t == N) {
         normalSSTables.push_back(newSSTable);
         doFlush(memtable->mem.size());
-    } else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)) {
-        newSSTable->setType(D);
+    } else if (t == D) {
         delaySSTables.push_back(newSSTable);
         doFlush(memtable->mem.size());
     }
 
-    delete memtable;
     return true;
 }
 
