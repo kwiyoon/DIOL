@@ -44,7 +44,6 @@ struct Record {
     uint64_t end_key;
 };
 
-
 class DataFactory {
 
 public:

@@ -19,6 +19,6 @@ int main(int argc, char* argv[]) {
 
     // cout<<initDataCount<<"  "<<numSegments<<"  "<<outOfOrderRatio<<"\n";
 
-    factory.generateDelayedDataset(dataSetName, initDataCount, outOfOrderRatio);
+    factory.generateO3Dataset(dataSetName, initDataCount, outOfOrderRatio);
 
 }
