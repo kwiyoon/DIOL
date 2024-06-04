@@ -20,11 +20,6 @@ tests/lib/
 .DS_Store
 
 tests/test_example.cpp
-<<<<<<< HEAD
 
 ./src/test/SSTable/
 ./src/test/dataset/
-=======
-src/test/dataset
-src/test/SSTable
->>>>>>> refs/remotes/origin/new
