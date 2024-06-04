@@ -20,9 +20,13 @@ long checkTimeRange(IMemtable* memtable, IMemtable* delayMemtable){
 /** Delay Memtable에서 내부적으로 시간이 겹치는 data들을 찾아 부분 compaction을 진행한다. */
 DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
     IMemtable* delayTable = findTargetMem(memtable, delayMemtables);
-    memtable->memTableStatus = COMPACTING;
-    if(delayTable!=NULL)
+    if(delayTable!=nullptr) {
         delayTable->memTableStatus = COMPACTING;
+        memtable->memTableStatus = COMPACTING;
+    }
+    if(delayTable == nullptr){
+        return nullptr;
+    }
 
     for(auto it = delayTable->mem.begin(); it!= delayTable->mem.end();){
         uint64_t delayKey = it->first;
@@ -40,7 +44,7 @@ DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtabl
 IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
     ImmutableMemtableController& immutableMemtableController = ImmutableMemtableController::getInstance();
     uint64_t maxCnt = numeric_limits<uint64_t>::min();
-    IMemtable* target = NULL;
+    IMemtable* target = nullptr;
 
     for (const auto delayMem : delayMemtables) {
         // 다른 thread가 건드는 중이거나 후보라면 패스
@@ -55,11 +59,11 @@ IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable
             long cnt = checkTimeRange(memtable, delayMem);
             if(cnt > maxCnt){
                 maxCnt = cnt;
-                if(target != NULL) target->memTableStatus = IMMUTABLE; // 후보에서 제외
+                if(target != nullptr) target->memTableStatus = IMMUTABLE; // 후보에서 제외
                 target = delayMem;
                 target->memTableStatus = WAITING_FOR_COMPACT; // 후보 등록
-            }else if(cnt == maxCnt){
-                if(target != NULL) target->memTableStatus = IMMUTABLE; // 후보에서 제외
+            }else if(cnt == maxCnt && cnt != 0){
+                if(target != nullptr) target->memTableStatus = IMMUTABLE; // 후보에서 제외
                 target = (target->ttl < delayMem->ttl) ? target : delayMem;
                 target->memTableStatus = WAITING_FOR_COMPACT; // 후보 등록
             }
