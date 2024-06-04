@@ -137,7 +137,7 @@ void Workload::executeWorkload(list<Record>& dataset, bool isMixedWorkload) {
 
 
 void Workload::deleteAllSSTable() {
-    std::string directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable"; 
+    std::string directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable";
     try {
         // 디렉터리 내의 모든 파일 순회
         for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
@@ -147,7 +147,7 @@ void Workload::deleteAllSSTable() {
     } catch (const std::filesystem::filesystem_error& e) {
         cerr << "Error: " << e.what() << endl;
     }
-    directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/compactionSSTable"; 
+    directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/compactionSSTable";
     try {
         // 디렉터리 내의 모든 파일 순회
         for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
@@ -221,7 +221,7 @@ void Workload::printDelayData(){
 
     int D_memory = 0;
     int D_disk= 0;
-    int N_disk = 0; 
+    int N_disk = 0;
 
     //delay imm 세기
     int delayImmMemtableNum=0;
@@ -249,17 +249,17 @@ void Workload::printDelayData(){
     cout<<"flush queue (N / D)"<<N_disk<<" / " <<D_disk<<"\n";
 
     //disk delay, normal 세기
-    
+
     for( auto SSTable: disk.delaySSTables){
         D_disk+=SSTable->rows.size();
     }
-     for( auto SSTable: disk.normalSSTables){
+    for( auto SSTable: disk.normalSSTables){
         N_disk+=SSTable->rows.size();
     }
 
 
     D_memory = delayImmMemtableNum+ actCon.activeDelayMemtable->mem.size();
-    
+
     cout<<"delay data in Memory : "<< D_memory<<"\n";
     cout<<"delay data in Disk : "<<D_disk<<"\n";
     cout<<"normal data in Disk : "<<N_disk<<"\n";
