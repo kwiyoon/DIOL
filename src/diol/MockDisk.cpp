@@ -82,25 +82,42 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 }
 
 bool MockDisk::flush(IMemtable* memtable, Type t) {
+//    std::unique_lock<std::mutex> lock(memtable->immMutex);
+//    cout << "MockDisk::flush - id : " << memtable->memtableId <<endl;
+
     SSTable* newSSTable = new SSTable(memtable->memtableId);
 
-    for (const auto& entry : memtable->mem) {
-        newSSTable->put(entry.first, entry.second);
+    try {
+        for (const auto& entry : memtable->mem) {
+            newSSTable->put(entry.first, entry.second);
+        }
+    } catch (const std::exception& e) {
+            std::cerr << "Exception caught in main: " << e.what() << std::endl;
     }
+
 
     newSSTable->setStartKey(newSSTable->rows.begin()->first);
     newSSTable->setLastKey(newSSTable->rows.rbegin()->first);
+//    cout<<"newSSTable 범위 : "<<newSSTable->startKey << ", "<<newSSTable->lastKey << endl;
 
     newSSTable->setType(t);
     if (t == N) {
+//        cout <<"normalSSTables size : "<< normalSSTables.size() <<"->";
         normalSSTables.push_back(newSSTable);
+//        cout << normalSSTables.size() <<endl;
         doFlush(memtable->mem.size());
+        return true;
+
     } else if (t == D) {
+//        cout <<"delaySSTables size : "<< delaySSTables.size() <<"->";
         delaySSTables.push_back(newSSTable);
+//        cout << delaySSTables.size() <<endl;
         doFlush(memtable->mem.size());
+        return true;
+
     }
 
-    return true;
+    return false;
 }
 
 void MockDisk::printSSTableList() {
