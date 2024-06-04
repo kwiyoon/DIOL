@@ -5,7 +5,10 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <climits>
 #include <mutex>
+#include <vector>
+#include <algorithm>
 #include <condition_variable>
 #include "memtable/IMemtable.h"
 #include "memtableController/ImmutableMemtableController.h"

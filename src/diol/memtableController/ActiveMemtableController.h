@@ -2,6 +2,8 @@
 #define ACTIVEMEMTABLECONTROLLER_H
 
 #include "../memtable/IMemtable.h"
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 

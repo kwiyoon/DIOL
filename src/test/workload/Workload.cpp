@@ -219,25 +219,52 @@ void Workload::printDelayData(){
     ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
     ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
 
+    int D_memory = 0;
+    int D_disk= 0;
+    int N_disk = 0; 
 
-    //
+    //delay imm 세기
     int delayImmMemtableNum=0;
-    int delayActiveMemtableNum=actCon.activeDelayMemtable->mem.size();
     for(auto memtable : immCon.delayImmMemtableList_M1){
         delayImmMemtableNum+=memtable->mem.size();
     }
     for(auto memtable : immCon.delayImmMemtableList_M2){
         delayImmMemtableNum+=memtable->mem.size();
     }
-    int delaySSTableNum= disk.delaySSTables.size();
-    int delaySSTableSize=0;
-    if(delaySSTableNum!= 0){
-        delaySSTableSize= disk.delaySSTables.front()->rows.size();
+
+
+    //flush queue 세기
+    std::queue<IMemtable*> tempQueue = immCon.flushQueue;
+    while (!tempQueue.empty()) {
+        IMemtable* memtable = tempQueue.front();
+        if(memtable->type == DI){
+            D_disk+=memtable->mem.size();
+        }else{
+            N_disk+=memtable->mem.size();
+        }
+
+        tempQueue.pop();
     }
 
-    cout<<"delay data in Memory : "<< delayImmMemtableNum*delaySSTableSize+delayActiveMemtableNum<<"\n";
+    cout<<"flush queue (N / D)"<<N_disk<<" / " <<D_disk<<"\n";
 
-    cout<<"delay data in Disk : "<<delaySSTableNum*delaySSTableSize<<"\n";
+    //disk delay, normal 세기
+    
+    for( auto SSTable: disk.delaySSTables){
+        D_disk+=SSTable->rows.size();
+    }
+     for( auto SSTable: disk.normalSSTables){
+        N_disk+=SSTable->rows.size();
+    }
+
+
+    D_memory = delayImmMemtableNum+ actCon.activeDelayMemtable->mem.size();
+    
+    cout<<"delay data in Memory : "<< D_memory<<"\n";
+    cout<<"delay data in Disk : "<<D_disk<<"\n";
+    cout<<"normal data in Disk : "<<N_disk<<"\n";
+    cout<<"data in Disk "<<(D_disk+N_disk)<<"\n";
+    cout<<"total delay: "<<D_memory+D_disk<<"\n";
 
 
 }

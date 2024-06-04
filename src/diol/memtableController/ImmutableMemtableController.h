@@ -73,6 +73,7 @@ private:
     map<uint64_t, int> diskRange(uint64_t start, uint64_t end);
     map<uint64_t, int> rangeInVector(uint64_t start, uint64_t end, vector<IMemtable*>& v, Type t);
     int readInVector(uint64_t key, vector<IMemtable*>& v);
+    
 };
 
 #endif // IMMUTABLEMEMTABLECONTROLLER_H

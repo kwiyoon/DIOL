@@ -1,6 +1,9 @@
 #ifndef DBMANAGER_H
 #define DBMANAGER_H
 
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
 #include "memtable/IMemtable.h"
 #include "DelayDetector.h"
 #include "memtableController/ActiveMemtableController.h"

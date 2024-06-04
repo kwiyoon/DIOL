@@ -5,9 +5,11 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <climits>
 #include <iostream>
 #include <condition_variable>
 #include <mutex>
+#include <vector>
 
 #define LOG_STR(str) \
     cout<<str<<endl;

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <mutex>
+#include <unordered_map>
 
 using namespace std;
 
@@ -11,6 +12,13 @@ enum State{
     M0,
     /** IMMUTABLE */
     M1, M2
+};
+
+enum IType{
+    /** NORMAL */
+    NI,
+    /** DELAY */
+    DI
 };
 
 enum MemTableStatus {
@@ -42,6 +50,7 @@ class IMemtable {
 public:
     unordered_map<uint64_t, int> mem;
     State state;
+    IType type;
     MemTableStatus memTableStatus;
     uint64_t startKey;
     uint64_t lastKey;

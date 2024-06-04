@@ -5,6 +5,7 @@
 #include "SSTable.h"
 #include "memtable/IMemtable.h"
 #include "SSTable.h"
+#include <iostream>
 
 #define LOG_STR(str) \
 //    cout<<str<<endl;
