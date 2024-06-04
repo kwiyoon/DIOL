@@ -35,12 +35,12 @@ int main(int argc, char* argv[]) {
 
     workloadA.printDelayData();
 
-    workloadA.deleteAllSSTable();
+    // workloadA.deleteAllSSTable();
 
-    workloadA.makeSSTable();
+    // workloadA.makeSSTable();
 
-    CompactionTest compacton;
-    compacton.runCompaction();
+    // CompactionTest compacton;
+    // compacton.runCompaction();
 
 
 

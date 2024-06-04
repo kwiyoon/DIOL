@@ -135,39 +135,52 @@ void Workload::executeWorkload(list<Record>& dataset, bool isMixedWorkload) {
 //    tree = nullptr;
 //}
 
+
 void Workload::deleteAllSSTable() {
-    std::string directoryPath = "../src/test/SSTable"; // SSTable 폴더의 경로
+    std::string directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable"; 
     try {
         // 디렉터리 내의 모든 파일 순회
         for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
             filesystem::remove(entry.path()); // 파일 삭제
+            cout<<"삭제\n";
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        cerr << "Error: " << e.what() << endl;
+    }
+    directoryPath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/compactionSSTable"; 
+    try {
+        // 디렉터리 내의 모든 파일 순회
+        for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
+            filesystem::remove(entry.path()); // 파일 삭제
+            cout<<"삭제\n";
         }
     } catch (const std::filesystem::filesystem_error& e) {
         cerr << "Error: " << e.what() << endl;
     }
 }
-
+/*
 void Workload::makeSSTable() {
-    MockDisk& disk = MockDisk::getInstance();
+
     deleteAllSSTable(); //기존 파일 삭제
+
+    cout<<"makeSSTable\n";
 
     int fileCounter=0;
 
-    string filename="../src/test/SSTable";
+    string filename="/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable/NormalSStable";
 
-    for(auto sstable:disk.normalSSTables){
+    for(auto sstable:tree->Disk->normalSSTables){
 
+        filename="/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable/NormalSStable"+to_string(++fileCounter) + ".txt";
 
         ofstream outputFile(filename);
         if (!outputFile.is_open()) {
-            cerr << "Failed to open output file: " << filename << endl;
+            cerr << "Failed to open output file: ??" << filename << endl;
             return;
         }
 
-        filename="/NormalSStable"+ to_string(++fileCounter) + ".txt";
-        outputFile<<sstable->rows.size()<<"\n";  //사이즈
-        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
-        for (const auto& pair : sstable->rows) {
+        outputFile<<sstable->ss.begin()->first<<"\t"<<sstable->ss.end()->first<<"\n"; //처음키, 마지막키
+        for (const auto& pair : sstable->ss) {
             outputFile << pair.first << "\t" << pair.second << "\n";
         }
 
@@ -175,12 +188,13 @@ void Workload::makeSSTable() {
     }
 
     fileCounter=0;
+    
 
 
+    
+    for(auto sstable:tree->Disk->delaySSTables){
 
-    for(auto sstable:disk.delaySSTables){
-
-
+        filename="/home/haena/DBDBDeep/IoTDB-lsm/src/test/SSTable/DelaySStable"+to_string(++fileCounter) + ".txt";
 
         ofstream outputFile(filename);
         if (!outputFile.is_open()) {
@@ -188,10 +202,8 @@ void Workload::makeSSTable() {
             return;
         }
 
-        filename="/DelaySStable"+ to_string(++fileCounter) + ".txt";
-        outputFile<<sstable->rows.size()<<"\n";  //사이즈
-        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
-        for (const auto& pair : sstable->rows) {
+        outputFile<<sstable->ss.begin()->first<<"\t"<<sstable->ss.end()->first<<"\n"; //처음키, 마지막키
+        for (const auto& pair : sstable->ss) {
             outputFile << pair.first << "\t" << pair.second << "\n";
         }
 
@@ -200,6 +212,7 @@ void Workload::makeSSTable() {
 
 }
 
+*/
 
 void Workload::printDelayData(){
     MockDisk& disk = MockDisk::getInstance();

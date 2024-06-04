@@ -22,6 +22,7 @@ SRCS = \
     test/workload/Workload.cpp\
     test/CompactionTest.cpp\
     test/DataFactory.cpp\
+    test/testSSTable.cpp\
     testDIOL.cpp
 
 # 오브젝트 파일 목록

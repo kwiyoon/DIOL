@@ -5,7 +5,7 @@
 #ifndef IOTDB_DBManager_WORKLOAD_H
 #define IOTDB_DBManager_WORKLOAD_H
 
-//#include "../DataFactory.h"
+#include "../DataFactory.h"
 #include "../../diol/DBManager.h"
 #include <iostream>
 #include <string>
@@ -43,7 +43,7 @@ public:
     void cleanup();
     DBManager* getTree();
     void deleteAllSSTable();
-    void makeSSTable();
+    //void makeSSTable();
     void printDelayData();
 private:
     int iteration=0;
