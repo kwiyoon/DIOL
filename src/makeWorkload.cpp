@@ -16,8 +16,16 @@ int main(int argc, char* argv[]) {
     double singleReadProportion = stod(argv[5]); // 단일 read 작업에 대한 비율
     double rangeReadProportion = stod(argv[6]); // range 읽기 작업 비율
 
-    string initfilePath = "/home/haena/DBDBDeep/IoTDB-lsm/src/test/dataset" + initDataName+".txt";
-    deque<Record> initDataSet = workloadA.readFile(initfilePath);
 
-    factory.generateWorkloadDataset(initDataName, initDataSet,workloadDataName, readProportion, insertProportion, singleReadProportion, rangeReadProportion);
+    string initfilePath = "../src/test/dataset/" + initDataName+".txt";
+    int halfLines = workloadA.extractHalfLinesFromFilename(initfilePath);
+
+    //initFile 1~halfLines까지 읽어서 initDataSet에 저장
+    std::list<Record> initDataSet = workloadA.readFileFromStart(initfilePath, halfLines);
+    cout<<"initDataSet size : "<<initDataSet.size()<<"\n";
+    //initDataSet을 이용해서 readRangeDataset 워크로드 생성
+    factory.generateReadRangeDataset(readProportion, insertProportion, singleReadProportion, rangeReadProportion, initDataSet);
+
+    //생성된 워크로드 파일에 쓰기
+    factory.transferLinesToWorkloadFile(initfilePath, workloadDataName, halfLines,readProportion,insertProportion,singleReadProportion);
 }
