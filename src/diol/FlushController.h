@@ -90,16 +90,22 @@ private:
     }
 
     void doFlush(Type t) {
-        while (true) {
+//        while (true) {
             IMemtable *memtable = nullptr;
             // flushQueue 락
             {
                 std::unique_lock<std::mutex> lock(flushQueueMutex);
-                if (!immMemtableController.flushQueue.empty()) {
-                    memtable = immMemtableController.flushQueue.front();
-                    immMemtableController.flushQueue.pop();
-                } else {
-                    break;
+                while(true) {
+                    if (!immMemtableController.flushQueue.empty()) {
+                        memtable = immMemtableController.flushQueue.front();
+//                        cout << "doFlush - id : " << memtable->memtableId << endl;
+                        immMemtableController.flushQueue.pop();
+                        break;
+                    } else {
+//                        cout << "doFlush - else" << endl;
+                        checkTimeout(t);
+//                        break;
+                    }
                 }
             }
 
@@ -109,13 +115,12 @@ private:
                     std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
                     while (memtable->memTableStatus == READING);
                     memtable->memTableStatus = FLUSHING;
-                }
-
-                if (disk.flush(memtable, t)) {
-                    delete memtable;
+                    if (disk.flush(memtable, t)) {
+                        delete memtable;
+                    }
                 }
             }
-        }
+//        }
     }
 };
 
