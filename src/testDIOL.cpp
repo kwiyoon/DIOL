@@ -5,6 +5,7 @@
 #include "test/workload/Workload.h"
 #include "test/CompactionTest.h"
 
+
 int main(int argc, char* argv[]) {
     Workload workloadA(DBManager::getInstance(), MockDisk::getInstance());
     string initDataNum = argv[1]; //ex) "10000";

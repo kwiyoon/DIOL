@@ -1,8 +1,9 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -I./diol -I./diol/memtable -I./diol/memtableController -I./test
+LDFLAGS = -lstdc++fs
 
 # 타겟 정의
-all: testDIOL
+all: testDOIL
 
 # 소스 파일 목록
 SRCS = \
@@ -34,7 +35,7 @@ all: $(EXEC)
 
 # 실행 파일 빌드 규칙
 $(EXEC): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # 개별 오브젝트 파일 빌드 규칙
 %.o: %.cpp
