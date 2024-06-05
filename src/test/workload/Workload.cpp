@@ -218,12 +218,13 @@ void Workload::printDelayData(){
     MockDisk& disk = MockDisk::getInstance();
     ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
     ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
-    immCon.flushController->waitAndStop();
+   // immCon.flushController->waitAndStop();
 
 
     int D_memory = 0;
     int D_disk= 0;
     int N_disk = 0;
+    int N_memory=0;
 
     //delay imm 세기
     cout<<"delay immutable\n";
@@ -236,7 +237,18 @@ void Workload::printDelayData(){
     }
     for(auto memtable : immCon.delayImmMemtableList_M2){
         delayImmMemtableNum+=memtable->mem.size();
-        cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
+       cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
+    }
+
+    cout<<"[ M0 ] "<<  actCon.activeNormalMemtable->mem.size() <<"\n";
+    N_memory+= actCon.activeNormalMemtable->mem.size();
+    for(auto memtable : immCon.normalImmMemtableList_M1){
+        N_memory+=memtable->mem.size();
+        cout<<"[ M1 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
+    }
+    for(auto memtable : immCon.normalImmMemtableList_M2){
+        N_memory+=memtable->mem.size();
+       cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
     }
 
 
@@ -261,13 +273,13 @@ void Workload::printDelayData(){
     for( auto SSTable: disk.delaySSTables){
         
         D_disk+=SSTable->rows.size();
-        cout<<"["<<++i<<"] : "<<SSTable->rows.size()<<"\n";
+        cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
     cout<<"\nnormal SSTable\n";
     i=0;
     for( auto SSTable: disk.normalSSTables){
         N_disk+=SSTable->rows.size();
-        cout<<"["<<++i<<"] : "<<SSTable->rows.size()<<"\n";
+        cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
 
 
@@ -278,6 +290,7 @@ void Workload::printDelayData(){
     cout<<"normal data in Disk : "<<N_disk<<"\n";
     cout<<"data in Disk "<<(D_disk+N_disk)<<"\n";
     cout<<"total delay: "<<D_memory+D_disk<<"\n";
+    cout<<"total data: "<<D_memory+D_disk+N_disk+N_memory<<"\n";
 
 
 }
