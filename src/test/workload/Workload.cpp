@@ -220,17 +220,23 @@ void Workload::printDelayData(){
     ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
     immCon.flushController->waitAndStop();
 
+
     int D_memory = 0;
     int D_disk= 0;
     int N_disk = 0;
 
     //delay imm 세기
+    cout<<"delay immutable\n";
+    
+    cout<<"[ M0 ] "<<  actCon.activeDelayMemtable->mem.size() <<"\n";
     int delayImmMemtableNum=0;
     for(auto memtable : immCon.delayImmMemtableList_M1){
         delayImmMemtableNum+=memtable->mem.size();
+        cout<<"[ M1 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
     }
     for(auto memtable : immCon.delayImmMemtableList_M2){
         delayImmMemtableNum+=memtable->mem.size();
+        cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
     }
 
 
@@ -243,7 +249,6 @@ void Workload::printDelayData(){
         }else{
             N_disk+=memtable->mem.size();
         }
-
         tempQueue.pop();
     }
 
@@ -251,11 +256,18 @@ void Workload::printDelayData(){
 
     //disk delay, normal 세기
 
+    cout<<"\ndelay SSTable\n";
+    int i=0;
     for( auto SSTable: disk.delaySSTables){
+        
         D_disk+=SSTable->rows.size();
+        cout<<"["<<++i<<"] : "<<SSTable->rows.size()<<"\n";
     }
+    cout<<"\nnormal SSTable\n";
+    i=0;
     for( auto SSTable: disk.normalSSTables){
         N_disk+=SSTable->rows.size();
+        cout<<"["<<++i<<"] : "<<SSTable->rows.size()<<"\n";
     }
 
 

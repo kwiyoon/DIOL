@@ -1,5 +1,5 @@
 
-PROGRAM="./testIoTDB"  # 실행 파일 경로를 지정하세요
+PROGRAM="./testDIOL"  # 실행 파일 경로를 지정하세요
 
 size=100000000
 
