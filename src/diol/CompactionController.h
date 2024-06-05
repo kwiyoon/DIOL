@@ -40,7 +40,6 @@ public:
         std::unique_lock<std::mutex> lock(mutex);
         condition.wait(lock, [this] { return taskCompleted; });
     }
-
 private:
     std::atomic<bool> running;
     std::thread worker;

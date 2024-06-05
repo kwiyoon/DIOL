@@ -36,7 +36,7 @@ public:
     bool compaction();
     int read(uint64_t key);
     map<uint64_t, int> range(uint64_t start, uint64_t end);
-    bool flush(IMemtable* mem, Type t);
+    bool flush(IMemtable* mem);
     void printSSTableList();
 };
 

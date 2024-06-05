@@ -24,8 +24,8 @@ public:
     DelayMemtable* updateDelayMem(int id);
 private:
     ActiveMemtableController(){
-        activeNormalMemtable = new NormalMemtable(0);
-        activeDelayMemtable = new DelayMemtable(1);
+        activeNormalMemtable = new NormalMemtable(1);
+        activeDelayMemtable = new DelayMemtable(2);
     }
     ActiveMemtableController(const ActiveMemtableController&) = delete;
     void operator=(const ActiveMemtableController&) = delete;

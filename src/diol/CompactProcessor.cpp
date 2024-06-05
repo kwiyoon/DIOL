@@ -10,7 +10,7 @@ long checkTimeRange(IMemtable* memtable, IMemtable* delayMemtable){
     uint64_t l = memtable->lastKey;
     long cnt = 0;
     for(auto pair : delayMemtable->mem){
-        if(pair.second >= s && pair.second <= l){
+        if(pair.first >= s && pair.first <= l){
             cnt++;
         }
     }
@@ -28,46 +28,49 @@ DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtabl
         return nullptr;
     }
 
+//    cout<<"compact delayTable  "<<delayTable->memtableId << ", size = "<<delayTable->mem.size() << "->";
     for(auto it = delayTable->mem.begin(); it!= delayTable->mem.end();){
         uint64_t delayKey = it->first;
         if(delayKey >= memtable->startKey && delayKey <= memtable->lastKey){
-            memtable->mem.insert({it->first, it->second});
+            memtable->mem.insert({delayKey, it->second});
             it = delayTable->mem.erase(it);
         }else{
             ++it;
         }
     }
+//    cout<<delayTable->mem.size() << endl;
+
     return dynamic_cast<DelayMemtable*>(delayTable);
 }
 
 /** compaction을 진행할 DelayMemtable을 찾는다. */
 IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
     ImmutableMemtableController& immutableMemtableController = ImmutableMemtableController::getInstance();
-    uint64_t maxCnt = numeric_limits<uint64_t>::min();
+    uint64_t maxCnt = 0;
     IMemtable* target = nullptr;
 
     for (const auto delayMem : delayMemtables) {
         // 다른 thread가 건드는 중이거나 후보라면 패스
         if(delayMem->memTableStatus == COMPACTING
             || delayMem->memTableStatus == WAITING_FOR_COMPACT) continue;
-        while(!delayMem->memTableStatus == READING);
         // ttl이 다 됐다면 M2로 즉시 변환
-        if(delayMem->ttl == 0){
-            immutableMemtableController.transformM1toM2(delayMem);
-        }
-        else{
+//        if(delayMem->ttl == 0){
+//            immutableMemtableController.transformM1toM2(delayMem);
+//        }
+//        else{
             long cnt = checkTimeRange(memtable, delayMem);
+            if(cnt <= 0) continue;
             if(cnt > maxCnt){
                 maxCnt = cnt;
                 if(target != nullptr) target->memTableStatus = IMMUTABLE; // 후보에서 제외
                 target = delayMem;
                 target->memTableStatus = WAITING_FOR_COMPACT; // 후보 등록
-            }else if(cnt == maxCnt && cnt != 0){
+            }else if(cnt == maxCnt){
                 if(target != nullptr) target->memTableStatus = IMMUTABLE; // 후보에서 제외
                 target = (target->ttl < delayMem->ttl) ? target : delayMem;
                 target->memTableStatus = WAITING_FOR_COMPACT; // 후보 등록
             }
-        }
+//        }
     }
     return target;
 }

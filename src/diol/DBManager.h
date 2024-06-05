@@ -34,7 +34,7 @@ public:
 private:
     DBManager(): activeMemtableController(ActiveMemtableController::getInstance()),
                  immMemtableController(ImmutableMemtableController::getInstance()){
-        currentId = 0;
+        currentId = 1;
         getIdAndIncrement();
 //        compactionController->start();
 //        flushController->start();

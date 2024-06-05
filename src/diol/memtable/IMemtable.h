@@ -62,7 +62,7 @@ public:
     mutex immMutex;
 
 //    static const int STEP1_TTL = INIT_TTL/2;
-    static const int INIT_TTL = 10;
+    static const int INIT_TTL = 6;
 
     virtual ~IMemtable() = default;
     void increaseAccessCount(int cnt);

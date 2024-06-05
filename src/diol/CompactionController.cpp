@@ -19,11 +19,11 @@ void CompactionController::checkTimeOut() {
     if (!timeoutFound) {
         // 타임아웃된 Memtable이 없을 경우 가장 delay 추정치가 적은 Memtable을 찾아 queue에 삽입
         IMemtable* minDelayMemtable = findMemtableWithMinDelay();
-        if(minDelayMemtable != NULL) {
+        if(minDelayMemtable != nullptr) {
             LOG_STR("compactionQueue.push - least delay");
             immController.compactionQueue.push(minDelayMemtable);
-
             immController.erase(immController.normalImmMemtableList_M1, minDelayMemtable);
+
             LOG_STR("immController.compactionQueue에서 erase 잘 끝냈어요.");
         }
     }
@@ -35,7 +35,7 @@ IMemtable* CompactionController::findMemtableWithMinDelay() {
     ImmutableMemtableController& immContoller = ImmutableMemtableController::getInstance();
 
     int minDelay = INT_MAX;
-    IMemtable* imm = NULL;
+    IMemtable* imm = nullptr;
     if(!immContoller.normalImmMemtableList_M1.empty()) {
         for (const auto memtable: immContoller.normalImmMemtableList_M1) {
             if (auto normalPtr = dynamic_cast<NormalMemtable *>(memtable)) {

@@ -81,7 +81,7 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
     return results;
 }
 
-bool MockDisk::flush(IMemtable* memtable, Type t) {
+bool MockDisk::flush(IMemtable* memtable) {
 //    std::unique_lock<std::mutex> lock(memtable->immMutex);
 //    cout << "MockDisk::flush - id : " << memtable->memtableId <<endl;
 
@@ -98,23 +98,17 @@ bool MockDisk::flush(IMemtable* memtable, Type t) {
 
     newSSTable->setStartKey(newSSTable->rows.begin()->first);
     newSSTable->setLastKey(newSSTable->rows.rbegin()->first);
-//    cout<<"newSSTable 범위 : "<<newSSTable->startKey << ", "<<newSSTable->lastKey << endl;
 
-    newSSTable->setType(t);
-    if (t == N) {
-//        cout <<"normalSSTables size : "<< normalSSTables.size() <<"->";
+    if(memtable->type == NI){
+        newSSTable->setType(N);
         normalSSTables.push_back(newSSTable);
-//        cout << normalSSTables.size() <<endl;
         doFlush(memtable->mem.size());
         return true;
-
-    } else if (t == D) {
-//        cout <<"delaySSTables size : "<< delaySSTables.size() <<"->";
+    } else if (memtable->type == DI) {
+        newSSTable->setType(D);
         delaySSTables.push_back(newSSTable);
-//        cout << delaySSTables.size() <<endl;
         doFlush(memtable->mem.size());
         return true;
-
     }
 
     return false;

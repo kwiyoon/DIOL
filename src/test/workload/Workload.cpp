@@ -218,6 +218,7 @@ void Workload::printDelayData(){
     MockDisk& disk = MockDisk::getInstance();
     ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
     ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
+    immCon.flushController->waitAndStop();
 
     int D_memory = 0;
     int D_disk= 0;

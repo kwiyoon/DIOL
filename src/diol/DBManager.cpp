@@ -46,16 +46,18 @@ IMemtable* DBManager::transformM0ToM1(IMemtable* memtable) {
             memtablePtr->setLastKey(maxKey);
         }
         immutableController.putMemtableToM1List(memtablePtr);
-        lock.unlock();
+//        lock.unlock();
     };
 
-    if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
-        immutableController.decreaseTTL();
+    if (memtable->type == NI){
+        auto normalPtr = dynamic_cast<NormalMemtable*>(memtable);
+        immutableController.decreaseTTL(immutableController.normalImmMemtableList_M1);
         updateKeys(normalPtr);
         normalPtr->setDelayCount(DelayDetector::detect(normalPtr));
         return activeController.updateNormalMem(getIdAndIncrement(), normalPtr->lastKey);
-    } else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
-        updateKeys(delayPtr);
+    } else if (memtable->type == DI){
+        immutableController.decreaseTTL(immutableController.delayImmMemtableList_M1);
+        updateKeys(memtable);
         return activeController.updateDelayMem(getIdAndIncrement());
     }else
         throw logic_error("DBManager::transformM0ToM1 주소비교.. 뭔가 문제가 있는 듯 하오.");

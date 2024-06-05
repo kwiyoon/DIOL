@@ -49,7 +49,7 @@ public:
     int read(uint64_t key);
     map<uint64_t, int> range(uint64_t start, uint64_t end);
     void putMemtableToM1List(IMemtable*);
-    void decreaseTTL();
+    void decreaseTTL(vector<IMemtable*>& v);
     void erase(vector<IMemtable*>& v, IMemtable* memtable);
     void transformM1toM2(IMemtable*);
     void setFlushController(FlushController* fc){

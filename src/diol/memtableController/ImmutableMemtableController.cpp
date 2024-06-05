@@ -72,11 +72,11 @@ void ImmutableMemtableController::putMemtableToM1List(IMemtable* memtable) {
 //        cout<<"convertOldDelayToM2"<<endl;
         convertOldDelayToM2();
     }
-    if (auto normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
-        normalImmMemtableList_M1.push_back(normalPtr);
+    if (memtable->type == NI){
+        normalImmMemtableList_M1.push_back(memtable);
     }
-    else if (auto delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
-        delayImmMemtableList_M1.push_back(delayPtr);
+    else if (memtable->type == DI){
+        delayImmMemtableList_M1.push_back(memtable);
     }
 }
 
@@ -132,7 +132,7 @@ map<uint64_t, int> ImmutableMemtableController::diskRange(uint64_t start, uint64
 void ImmutableMemtableController::convertOldDelayToM2(){
     LOG_STR("ImmutableMemtableController::convertOldDelayToM2()");
     int min = std::numeric_limits<int>::max();
-    IMemtable* target = NULL;
+    IMemtable* target = nullptr;
     for (const auto memtable : delayImmMemtableList_M1) {
         if (memtable->ttl <= min) {
             min = memtable->ttl;
@@ -145,25 +145,27 @@ void ImmutableMemtableController::convertOldDelayToM2(){
 void ImmutableMemtableController::compaction() {
     if(compactionQueue.empty()){
         CompactionController compactionController;
-//        compactionController.checkTimeOut();
-        compactionController.start();
-        compactionController.waitForCompletion();
-        compactionController.stop();
+        compactionController.checkTimeOut();
+//        compactionController.start();
+//        compactionController.waitForCompletion();
+//        compactionController.stop();
         LOG_STR("start까지 ㄱㅊ");
     }
 
-    IMemtable *normalMemtable;
-    {
+    IMemtable *normalMemtable = nullptr;
+    if(!compactionQueue.empty()) {
         normalMemtable = compactionQueue.front();;
 //        std::unique_lock<std::immMutex> lock(normalMemtable->immMutex);
 
         if (!delayImmMemtableList_M1.empty()) {
-            IMemtable *delaymemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
+            IMemtable *delayMemtable = compactProcessor->compaction(normalMemtable, delayImmMemtableList_M1);
 
-            if(delaymemtable != nullptr){
-                transformM1toM2(delaymemtable);
+            if (delayMemtable != nullptr) {
+                delayMemtable->memTableStatus = COMPACTED;
+                transformM1toM2(delayMemtable);
             }
         }
+        normalMemtable->memTableStatus = COMPACTED;
         transformM1toM2(normalMemtable);
         compactionQueue.pop();
     }
@@ -173,8 +175,11 @@ void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtab
     for(auto it = v.begin(); it != v.end();){
         auto element = *it;
         if(element == memtable){
-            it = v.erase(it);
-        } else it++;
+            v.erase(it);
+            break;
+        } else {
+            it++;
+        }
     }
     LOG_STR("erase 잘돼요");
 }
@@ -189,34 +194,43 @@ void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
         LOG_STR("==========full!!============");
         if(flushQueue.empty())
             flushController->checkTimeout(N);
+
+            /** thread */
         flushController->start(N);
-//        flushController->waitForCompletion();
-//        flushController->stop();
+
+            /** no thread */
+//            flushController->doFlushNoThread(N);
     }
     if(LIMIT_SIZE_DELAY_M2*0.8 <= delayImmMemtableList_M2.size()){
         LOG_STR("==========full!!============");
         if(flushQueue.empty())
             flushController->checkTimeout(D);
+        /** thread */
         flushController->start(D);
-//        flushController->waitForCompletion();
-//        flushController->stop();
+        /** no thread */
+//        flushController->doFlushNoThread(D);
     }
 
-    memtable->initM2();
-    if (NormalMemtable* normalPtr = dynamic_cast<NormalMemtable*>(memtable)){
-        erase(normalImmMemtableList_M1, normalPtr);
-        normalImmMemtableList_M2.push_back(normalPtr);
-    } else if (DelayMemtable* delayPtr = dynamic_cast<DelayMemtable*>(memtable)){
-        erase(delayImmMemtableList_M1, delayPtr);
-        delayImmMemtableList_M2.push_back(delayPtr);
+    if (memtable->type == NI){
+        if(memtable->memTableStatus != COMPACTED)
+            erase(normalImmMemtableList_M1, memtable);
+        memtable->initM2();
+        decreaseTTL(normalImmMemtableList_M2);
+        normalImmMemtableList_M2.push_back(memtable);
+
+    } else if (memtable->type == DI){
+        erase(delayImmMemtableList_M1, memtable);
+        memtable->initM2();
+        decreaseTTL(delayImmMemtableList_M2);
+        delayImmMemtableList_M2.push_back(memtable);
     }
     else
         throw logic_error("ImmutableMemtableController::transformM1toM2 주소비교.. 뭔가 문제가 있는 듯 하오.");
 }
 
 // 모든 M1 memtable에 ttl--
-void ImmutableMemtableController::decreaseTTL() {
-    for (auto imm : normalImmMemtableList_M1) {
+void ImmutableMemtableController::decreaseTTL(vector<IMemtable*>& v) {
+    for (auto imm : v) {
         imm->ttl--;
     }
 }

@@ -41,19 +41,44 @@ public:
         if(!workers.empty()){
             for (auto& worker : workers) {
                 if (worker.joinable()) {
-                    worker.detach();
+//                    worker.detach();
+                    cout<<"";
+                    worker.join();
                 }
             }
             workers.clear();
             workers.shrink_to_fit();
         }
-
         condition.notify_all();
     }
 
     ~FlushController() { }
 
     void checkTimeout(Type t);
+    void doFlushNoThread(Type t) {
+        IMemtable *memtable = nullptr;
+        // flushQueue 락
+        {
+            std::unique_lock<std::mutex> lock(flushQueueMutex);
+//                while(true) {
+            if (!immMemtableController.flushQueue.empty()) {
+                memtable = immMemtableController.flushQueue.front();
+            } else {
+                return;
+            }
+            if (memtable != nullptr) {
+                // memtable 락
+                std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
+                while (memtable->memTableStatus == READING);
+                memtable->memTableStatus = FLUSHING;
+                if (disk.flush(memtable)) {
+                    immMemtableController.flushQueue.pop();
+                    memtableLock.unlock();
+                    delete memtable;
+                }
+            }
+        }
+    }
 
 private:
 //    std::atomic<bool> running;
@@ -67,7 +92,7 @@ private:
     MockDisk& disk;
     IMemtable* findMemtableWithMinAccess(vector<IMemtable*> &v);
 
-    void run(Type t){
+    void run(Type t) {
         doFlush(t);
 
         // 스레드 종료를 위한 clean up
@@ -79,48 +104,42 @@ private:
             if (it != workers.end()) {
                 if (it->joinable()) {
                     it->detach();  // 스레드를 백그라운드로 돌려서 종료 대기
+//                    it->join();  // 스레드를 백그라운드로 돌려서 종료 대기
                 }
                 workers.erase(it);  // 벡터에서 제거
+                if (workers.empty()) {
+                    condition.notify_all();
+                }
             }
-            if (workers.empty()) {
-                condition.notify_all();
-            }
-        }
 
+        }
     }
 
     void doFlush(Type t) {
-//        while (true) {
             IMemtable *memtable = nullptr;
             // flushQueue 락
             {
                 std::unique_lock<std::mutex> lock(flushQueueMutex);
-                while(true) {
+//                while(true) {
                     if (!immMemtableController.flushQueue.empty()) {
                         memtable = immMemtableController.flushQueue.front();
-//                        cout << "doFlush - id : " << memtable->memtableId << endl;
-                        immMemtableController.flushQueue.pop();
-                        break;
                     } else {
-//                        cout << "doFlush - else" << endl;
-                        checkTimeout(t);
-//                        break;
+                        return;
                     }
-                }
-            }
-
-            if (memtable != nullptr) {
-                // memtable 락
-                {
+                if (memtable != nullptr) {
+                    // memtable 락
                     std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
                     while (memtable->memTableStatus == READING);
                     memtable->memTableStatus = FLUSHING;
-                    if (disk.flush(memtable, t)) {
+                    if (disk.flush(memtable)) {
+                        immMemtableController.flushQueue.pop();
+                        cout<<"";
+                        lock.unlock();
+                        memtableLock.unlock();
                         delete memtable;
                     }
                 }
             }
-//        }
     }
 };
 
