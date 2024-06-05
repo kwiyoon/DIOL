@@ -1,13 +1,13 @@
 #!/bin/bash
 
-PROGRAM="./testIoTDB"  # 실행 파일 경로를 지정하세요
+PROGRAM="./testDIOL"  # 실행 파일 경로를 지정하세요
 
 size=100000000
 datas=("data_c100000000_d0.05" "data_c100000000_d0.10" "data_c100000000_d0.20" "data_c100000000_d0.30")
 
 if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <value>"
-  echo "Allowed values: A B C D E F G"
+  echo "Allowed values: A B C D E"
   exit 1
 fi
 
@@ -30,15 +30,9 @@ case $VALUE in
   E)
     files=("workloadE_data_c100000000_d0.05" "workloadE_data_c100000000_d0.10" "workloadE_data_c100000000_d0.20" "workloadE_data_c100000000_d0.30")
     ;;
-  F)
-    files=("workloadF_data_c100000000_d0.05" "workloadF_data_c100000000_d0.10" "workloadF_data_c100000000_d0.20" "workloadF_data_c100000000_d0.30")
-    ;;
-  G)
-    files=("workloadG_data_c100000000_d0.05" "workloadG_data_c100000000_d0.10" "workloadG_data_c100000000_d0.20" "workloadG_data_c100000000_d0.30")
-    ;;
   *)
     echo "Invalid value: $VALUE"
-    echo "Allowed values: A, B, C, D, E, F, G"
+    echo "Allowed values: A, B, C, D, E"
     exit 1
     ;;
 esac
@@ -47,6 +41,6 @@ esac
 for i in "${!datas[@]}"; do
     data=${datas[$i]}
     file=${files[$i]}
-    echo "[ IoRDB ] Running with data=${data} and workload=${file}"
+    echo "[ DIOL ] Running with data=${data} and workload=${file}"
     $PROGRAM $size $data $file
 done
