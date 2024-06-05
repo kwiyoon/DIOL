@@ -8,6 +8,7 @@ NormalMemtable::NormalMemtable(int id) {
     this->memtableId = id;
     this->memTableStatus = WORKING;
     this->memtableSize = 32 * 1024 * 1024;
+//    this->memtableSize = 8 * 1024;
 }
 
 void NormalMemtable::setDelayCount(int cnt) {
