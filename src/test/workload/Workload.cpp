@@ -78,17 +78,21 @@ list<Record> Workload::readFileWhole(const string& filePath) {
 
 void Workload::executeInsertWorkload(list<Record>& dataset, int start, int end) {
     iteration = 0;
+//    cout<<"executeInsertWorkload - 시작"<<endl;
+
     for (const auto& record : dataset) {
         tree.insert(record.key, record.key * 2);
         iteration++;
 
     }
+//    cout<<"executeInsertWorkload - 끝"<<endl;
 
 }
 
 void Workload::executeMixedWorkload(list<Record>& dataset, int start, int end) {
     // << "Workload Mixed 작업 실행 시작\n";
     iteration=0;
+//    cout<<"executeMixedWorkload - 시작"<<endl;
     for (const auto& record : dataset) {
 
         if (record.op == "READ") {
@@ -105,6 +109,8 @@ void Workload::executeMixedWorkload(list<Record>& dataset, int start, int end) {
         iteration++;
 
     }
+//    cout<<"executeMixedWorkload - 끝"<<endl;
+
 
     //cout << "Workload Mixed 작업 실행 끝\n";
 }
@@ -214,6 +220,83 @@ void Workload::makeSSTable() {
 
 */
 
+//void Workload::printDelayData(){
+//    MockDisk& disk = MockDisk::getInstance();
+//    ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
+//    ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
+//
+//
+//    int N_memory = 0;
+//    int D_memory = 0;
+//    int D_disk= 0;
+//    int N_disk = 0;
+//
+//    //normal mem 세기
+//    N_memory = actCon.activeNormalMemtable->mem.size();
+//    for(auto memtable : immCon.normalImmMemtableList_M1){
+//        N_memory+=memtable->mem.size();
+//    }
+//    for(auto memtable : immCon.normalImmMemtableList_M2){
+//        N_memory+=memtable->mem.size();
+//    }
+//
+//    //compaction queue 세기
+//    std::queue<IMemtable*> compQueue = immCon.compactionQueue;
+//    while (!compQueue.empty()) {
+//        IMemtable* memtable = compQueue.front();
+//        N_memory+=memtable->mem.size();
+//        compQueue.pop();
+//    }
+//
+//
+//
+//    //delay imm 세기
+//    int delayImmMemtableNum=0;
+//    for(auto memtable : immCon.delayImmMemtableList_M1){
+//        delayImmMemtableNum+=memtable->mem.size();
+//    }
+//    for(auto memtable : immCon.delayImmMemtableList_M2){
+//        delayImmMemtableNum+=memtable->mem.size();
+//    }
+//
+//
+//    //flush queue 세기
+//    std::queue<IMemtable*> tempQueue = immCon.flushQueue;
+//    while (!tempQueue.empty()) {
+//        IMemtable* memtable = tempQueue.front();
+//        if(memtable->type == DI){
+//            D_disk+=memtable->mem.size();
+//        }else{
+//            N_disk+=memtable->mem.size();
+//        }
+//        tempQueue.pop();
+//    }
+//
+//    cout<<"flush queue (N / D)"<<N_disk<<" / " <<D_disk<<"\n";
+//
+//    //disk delay, normal 세기
+//
+//    for( auto SSTable: disk.delaySSTables){
+//        D_disk+=SSTable->rows.size();
+//    }
+//    for( auto SSTable: disk.normalSSTables){
+//        N_disk+=SSTable->rows.size();
+//    }
+//
+//
+//    D_memory = delayImmMemtableNum + actCon.activeDelayMemtable->mem.size();
+//
+//    cout<<"delay data in Memory : "<< D_memory<<"\n";
+//    cout<<"normal data in Memory : "<<N_memory<<"\n";
+//    cout<<"delay data in Disk : "<<D_disk<<"\n";
+//    cout<<"normal data in Disk : "<<N_disk<<"\n";
+//    cout<<"data in Disk "<<(D_disk+N_disk)<<"\n";
+//    cout<<"total delay: "<<D_memory+D_disk<<"\n";
+//    cout<<"total data: "<<D_memory+D_disk + N_memory + N_disk<<"\n";
+//
+//
+//}
+
 void Workload::printDelayData(){
     MockDisk& disk = MockDisk::getInstance();
     ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
@@ -224,7 +307,17 @@ void Workload::printDelayData(){
     int D_memory = 0;
     int D_disk= 0;
     int N_disk = 0;
-    int N_memory=0;
+    int N_memory = actCon.activeNormalMemtable->mem.size();
+
+    // normal memory
+    for(auto memtable : immCon.normalImmMemtableList_M1){
+        N_memory += memtable->mem.size();
+    }
+    for(auto memtable : immCon.normalImmMemtableList_M2){
+        N_memory += memtable->mem.size();
+    }
+
+
 
     //delay imm 세기
     cout<<"delay immutable\n";
@@ -257,9 +350,11 @@ void Workload::printDelayData(){
     while (!tempQueue.empty()) {
         IMemtable* memtable = tempQueue.front();
         if(memtable->type == DI){
-            D_disk+=memtable->mem.size();
-        }else{
-            N_disk+=memtable->mem.size();
+//            cout<<memtable->memtableId<<"in 3"<<endl;
+            D_disk += memtable->mem.size();
+        }else if(memtable->type == NI){
+//            cout<<memtable->memtableId<<"in 4"<<endl;
+            N_disk += memtable->mem.size();
         }
         tempQueue.pop();
     }
@@ -271,235 +366,27 @@ void Workload::printDelayData(){
     cout<<"\ndelay SSTable\n";
     int i=0;
     for( auto SSTable: disk.delaySSTables){
-        
         D_disk+=SSTable->rows.size();
         cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
     cout<<"\nnormal SSTable\n";
     i=0;
     for( auto SSTable: disk.normalSSTables){
+//        cout<<SSTable->sstableId<<"in 6"<<endl;
         N_disk+=SSTable->rows.size();
         cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
 
 
-    D_memory = delayImmMemtableNum+ actCon.activeDelayMemtable->mem.size();
+    D_memory = delayImmMemtableNum + actCon.activeDelayMemtable->mem.size();
 
     cout<<"delay data in Memory : "<< D_memory<<"\n";
     cout<<"delay data in Disk : "<<D_disk<<"\n";
     cout<<"normal data in Disk : "<<N_disk<<"\n";
+    cout<<"normal data in Memory : "<<N_memory<<"\n";
     cout<<"data in Disk "<<(D_disk+N_disk)<<"\n";
     cout<<"total delay: "<<D_memory+D_disk<<"\n";
     cout<<"total data: "<<D_memory+D_disk+N_disk+N_memory<<"\n";
 
 
 }
-
-//기존 test diol-------
-
-////파일에 있던 정보를 읽어와서 데이터셋 생성
-//deque<Record> Workload::readFile(const string& filePath) {
-//    deque<Record> dataset;
-//    ifstream file(filePath.c_str());
-//    if (!file.is_open()) {
-//        cerr << "ERR: 파일을 열 수 없습니다 " << filePath << endl;
-//        return dataset;
-//    }
-//
-//    string line;
-//    int lineCount = 0; // 현재까지 읽은 줄 수를 추적하기 위한 변수
-//
-////    cout<<filePath<<" 읽어오기 시작\n";
-//    while (getline(file, line)) {
-//        istringstream iss(line);
-//        string op;
-//        if (getline(iss, op, ',')) {
-//            Record record;
-//            record.op = op;
-//            if (op == "RANGE") {
-//                string startKeyStr, endKeyStr;
-//                if (getline(iss, startKeyStr, ' ') && getline(iss, endKeyStr)) {
-//                    record.start_key = stoull(startKeyStr);
-//                    record.end_key = stoull(endKeyStr);
-//                } else {
-//                    cerr << "ERR: 잘못된 형식의 RANGE 레코드입니다: " << line << endl;
-//                    continue;
-//                }
-//            } else {
-//                string keyStr;
-//                if (getline(iss, keyStr)) {
-//                    record.key = stoull(keyStr);
-//                } else {
-//                    cerr << "ERR: 잘못된 형식의 " << op << " 레코드입니다: " << line << endl;
-//                    continue;
-//                }
-//            }
-//            dataset.push_back(record);
-//        } else {
-//            cerr << "ERR: 잘못된 형식의 레코드입니다: " << line << endl;
-//        }
-//        /**진행률 출력 (전체 크기 기준으로 출력하기 어려우므로 임의의 기준으로 출력)*/
-////        ++lineCount;
-////        if (lineCount % 5000000 == 0){
-////            cout<<lineCount<<"개 읽음\n";
-////        }
-//    }
-////    cout<<filePath<<" 읽어오기 끝\n";
-//
-//    file.close();
-//    return dataset;
-//}
-//void Workload::executeInsertWorkload(deque<Record>& dataset, int start, int end) {
-////    cout << "Workload Insert 작업 실행 시작\n";
-//    for (int i = start; i <= end; ++i) {
-//        if (dataset[i].op == "INSERT") {
-//            tree.insert(dataset[i].key, dataset[i].key * 2);
-//        } else {
-//            cerr << "ERR: 잘못된 형식의 레코드입니다: " << dataset[i].op << endl;
-//            return;
-//        }
-//        /**진행률 출력*/
-//        if (i != 0 && i % (end / 5) == 0) {
-//            INT_LOG_PROGRESS(i, end);
-//        }
-//    }
-////    cout << "Workload Insert 작업 실행 끝\n";
-//}
-//
-//void Workload::executeMixedWorkload(deque<Record>& dataset, int start, int end) {
-////    cout << "Workload Mixed 작업 실행 시작\n";
-//    for (int i = start; i < end; ++i) {
-//        if (dataset[i].op == "READ") {
-//            tree.readData(dataset[i].key);
-//        } else if (dataset[i].op == "RANGE") {
-//            tree.range(dataset[i].start_key, dataset[i].end_key);
-//        } else if (dataset[i].op == "INSERT") {
-//            tree.insert(dataset[i].key, dataset[i].key * 2);
-//        } else {
-//            cerr << "ERR: 잘못된 형식의 레코드입니다: " << dataset[i].op << endl;
-//            return;
-//        }
-//        /** 진행률 출력 */
-//        int currentProgress = i - start + 1;
-//        if (currentProgress != 0 && i % ((end-start) / 5) == 0) {
-//            INT_LOG_PROGRESS(currentProgress, (end-start));
-//        }
-//
-//
-//    }
-////    cout << "Workload Mixed 작업 실행 끝\n";
-//}
-//
-//void Workload::executeWorkload(deque<Record>& dataset, int initDataNum) {
-////    cout << "workload 실행 시작\n";
-//
-//    executeInsertWorkload(dataset, 0, initDataNum/2);
-//    auto start = chrono::high_resolution_clock::now();
-//    executeMixedWorkload(dataset, initDataNum/2+1, dataset.size());
-//    auto end = chrono::high_resolution_clock::now();
-//
-////    cout << "workload 실행 끝\n";
-//
-//    chrono::duration<double, milli> elapsed = end - start;
-//    cout << "Workload 실행 시간: " << elapsed.count() << " ms" << endl;
-//}
-//
-//
-//void Workload::deleteAllSSTable() {
-//    std::string directoryPath = "../src/test/SSTable"; // SSTable 폴더의 경로
-//    try {
-//        // 디렉터리 내의 모든 파일 순회
-//        for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
-//            std::filesystem::remove(entry.path()); // 파일 삭제
-//        }
-//    } catch (const std::filesystem::filesystem_error& e) {
-//        cerr << "Error: " << e.what() << endl;
-//    }
-//}
-//
-//void Workload::makeSSTable() {
-//
-//    MockDisk& disk = MockDisk::getInstance();
-//
-//    deleteAllSSTable(); //기존 파일 삭제
-//
-//    int fileCounter=0;
-//
-//    string filename="../src/test/SSTable";
-//
-//    for(auto sstable:disk.normalSSTables){
-//
-//
-//        ofstream outputFile(filename);
-//        if (!outputFile.is_open()) {
-//            cerr << "Failed to open output file: " << filename << endl;
-//            return;
-//        }
-//
-//        filename="/NormalSStable"+ to_string(++fileCounter) + ".txt";
-//        outputFile<<sstable->rows.size()<<"\n";  //사이즈
-//        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
-//        for (const auto& pair : sstable->rows) {
-//            outputFile << pair.first << "\t" << pair.second << "\n";
-//        }
-//
-//        outputFile.close();
-//    }
-//
-//    fileCounter=0;
-//
-//
-//
-//    for(auto sstable:disk.delaySSTables){
-//
-//
-//
-//        ofstream outputFile(filename);
-//        if (!outputFile.is_open()) {
-//            cerr << "Failed to open output file: " << filename << endl;
-//            return;
-//        }
-//
-//        filename="/DelaySStable"+ to_string(++fileCounter) + ".txt";
-//        outputFile<<sstable->rows.size()<<"\n";  //사이즈
-//        outputFile<<sstable->rows.begin()->first<<"\t"<<sstable->rows.end()->first<<"\n"; //처음키, 마지막키
-//        for (const auto& pair : sstable->rows) {
-//            outputFile << pair.first << "\t" << pair.second << "\n";
-//        }
-//
-//        outputFile.close();
-//    }
-//
-//}
-//
-//void Workload::printDelayData(){
-//
-//    MockDisk& disk = MockDisk::getInstance();
-//    ActiveMemtableController& actCon = ActiveMemtableController::getInstance();
-//    ImmutableMemtableController& immCon = ImmutableMemtableController::getInstance();
-//
-//
-//    int delaySSTableNum= disk.delaySSTables.size();
-//    int delaySSTableNum=0;
-//
-//
-//    for(auto sstable : disk.delaySSTables){
-//
-//        delaySSTableNum+=sstable->rows.size();
-//
-//    }
-//
-//    int delayImmMemtableNum=0;
-//    int delayActiveMemtableNum=actCon.activeDelayMemtable->mem.size();
-//    for(auto memtable : immCon.delayImmMemtableList_M1){
-//        delayImmMemtableNum+=memtable->mem.size();
-//    }
-//    for(auto memtable : immCon.delayImmMemtableList_M2){
-//       delayImmMemtableNum+=memtable->mem.size();
-//    }
-//
-//    cout<<"delay data in Memory : "<< delayImmMemtableNum+delayActiveMemtableNum<<"\n";
-//    cout<<"delay data in Disk : "<<delaySSTableNum<<"\n";
-//
-//
-//}

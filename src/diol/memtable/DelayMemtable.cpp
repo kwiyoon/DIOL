@@ -9,7 +9,8 @@ DelayMemtable::DelayMemtable(int id) {
     this->memtableId = id;
     this->memTableStatus = WORKING;
 //    this->memtableSize = 1024 * 1024;
-    this->memtableSize = 2* 1024* 1024;
+    this->memtableSize = 2 * 1024 * 1024;
+//    this->memtableSize =  512;
 }
 
 bool DelayMemtable::isFull(){

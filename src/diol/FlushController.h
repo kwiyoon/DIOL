@@ -73,6 +73,7 @@ public:
                 memtable->memTableStatus = FLUSHING;
                 if (disk.flush(memtable)) {
                     immMemtableController.flushQueue.pop();
+                    lock.unlock();
                     memtableLock.unlock();
                     delete memtable;
                 }

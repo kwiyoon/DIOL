@@ -116,7 +116,7 @@ int ImmutableMemtableController::read(uint64_t key) {
 
 int ImmutableMemtableController::diskRead(uint64_t key){
 //    cout<<"reading Disk data~";
-    disk.readCount++;
+//    disk.readCount++;
 
     return disk.read(key);
 }

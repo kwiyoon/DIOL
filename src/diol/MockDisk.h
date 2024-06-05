@@ -31,7 +31,7 @@ public:
 
     std::list<SSTable*> normalSSTables;
     std::list<SSTable*> delaySSTables;
-    int readCount;
+    int readCount=0;
 
     bool compaction();
     int read(uint64_t key);
