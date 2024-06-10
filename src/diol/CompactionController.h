@@ -18,7 +18,7 @@ class CompactionController {
 public:
     CompactionController() : running(false), taskCompleted(false) {}
 
-    void checkTimeOut();
+    IMemtable* checkTimeOut();
 
     // 시작 메소드
     void start() {

@@ -242,16 +242,17 @@ void ImmutableMemtableController::convertOldDelayToM2(){
 }
 
 void ImmutableMemtableController::compaction() {
-    if(compactionQueue.empty()){
-        CompactionController compactionController;
-        compactionController.checkTimeOut();
+//    IMemtable* doCompactionMemtable = nullptr;
+//    if(compactionQueue.empty()){
+    CompactionController compactionController;
+    IMemtable *normalMemtable = compactionController.checkTimeOut();
 //        compactionController.start();
 //        compactionController.waitForCompletion();
 //        compactionController.stop();
         LOG_STR("start까지 ㄱㅊ");
-    }else{
-        IMemtable *normalMemtable = nullptr;
-        normalMemtable = compactionQueue.front();;
+//    }else{
+//        IMemtable *normalMemtable = nullptr;
+//        normalMemtable = compactionQueue.front();;
 //        std::unique_lock<std::immMutex> lock(normalMemtable->immMutex);
 
         if (!delayImmMemtableList_M1.empty()) {
@@ -262,10 +263,10 @@ void ImmutableMemtableController::compaction() {
                 transformM1toM2(delayMemtable);
             }
         }
-        normalMemtable->memTableStatus = COMPACTED;
+//        normalMemtable->memTableStatus = COMPACTED;
         transformM1toM2(normalMemtable);
-        compactionQueue.pop();
-    }
+//        compactionQueue.pop();
+//    }
 }
 
 void ImmutableMemtableController::erase(vector<IMemtable*>& v, IMemtable* memtable){
@@ -312,8 +313,8 @@ void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
     }
 
     if (memtable->type == NI){
-        if(memtable->memTableStatus != COMPACTED)
-            erase(normalImmMemtableList_M1, memtable);
+//        if(memtable->memTableStatus != COMPACTED)
+        erase(normalImmMemtableList_M1, memtable);
         memtable->initM2();
         decreaseTTL(normalImmMemtableList_M2);
         normalImmMemtableList_M2.push_back(memtable);
@@ -325,8 +326,6 @@ void ImmutableMemtableController::transformM1toM2(IMemtable* memtable) {
         deleteMem(M1last, memtable->memtableId);
         M1min=setMin(M1start);
         M1max=setMax(M1last);
-        
-
     } else if (memtable->type == DI){
         erase(delayImmMemtableList_M1, memtable);
         memtable->initM2();
