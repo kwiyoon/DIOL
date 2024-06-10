@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++17 -I./src
 LDFLAGS = -lstdc++fs -lstdc++ -pthread
 
 # 타겟 정의
-all: makeDataset testDIOL makeWorkload
+all: makeDataset testDIOL makeWorkload DtestDIOL
 
 # makeDataset 타겟
 makeDataset: makeDataset.o DataFactory.o DBManager.o IMemtable.o DelayMemtable.o NormalMemtable.o MockDisk.o SSTable.o

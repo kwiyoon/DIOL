@@ -49,6 +49,7 @@ private:
 
     IMemtable* findMemtableWithMinDelay();
     void run() {
+        
         checkTimeOut(); // checkTimeout 메소드 호출
         {
             std::lock_guard<std::mutex> lock(mutex);

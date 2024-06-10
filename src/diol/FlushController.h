@@ -42,7 +42,7 @@ public:
             for (auto& worker : workers) {
                 if (worker.joinable()) {
 //                    worker.detach();
-                    cout<<"";
+                    cout<<""; //해나
                     worker.join();
                 }
             }
@@ -69,7 +69,7 @@ public:
             if (memtable != nullptr) {
                 // memtable 락
                 std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
-                while (memtable->memTableStatus == READING);
+                //while (memtable->memTableStatus == READING);
                 memtable->memTableStatus = FLUSHING;
                 if (disk.flush(memtable)) {
                     immMemtableController.flushQueue.pop();
@@ -130,11 +130,11 @@ private:
                 if (memtable != nullptr) {
                     // memtable 락
                     std::unique_lock<std::mutex> memtableLock(memtable->immMutex);
-                    while (memtable->memTableStatus == READING);
+                    //while (memtable->memTableStatus == READING);
                     memtable->memTableStatus = FLUSHING;
                     if (disk.flush(memtable)) {
                         immMemtableController.flushQueue.pop();
-                        cout<<"";
+                        cout<<""; //해나
                         lock.unlock();
                         memtableLock.unlock();
                         delete memtable;

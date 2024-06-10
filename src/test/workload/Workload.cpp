@@ -92,21 +92,27 @@ void Workload::executeInsertWorkload(list<Record>& dataset, int start, int end) 
 void Workload::executeMixedWorkload(list<Record>& dataset, int start, int end) {
     // << "Workload Mixed 작업 실행 시작\n";
     iteration=0;
+   // cout<<"??\n";
 //    cout<<"executeMixedWorkload - 시작"<<endl;
     for (const auto& record : dataset) {
 
         if (record.op == "READ") {
-            tree.readData(record.key);
+            //cout<<"read\n";
+           tree.readData(record.key);
         } else if (record.op == "RANGE") {
-            tree.range(record.start_key, record.end_key);
+            //cout<<"Range\n";
+           tree.range(record.start_key, record.end_key);
+            
         } else if (record.op == "INSERT") {
-            tree.insert(record.key, record.key * 2);
+            //cout<<"I";
+           tree.insert(record.key, record.key * 2);
         } else {
             cerr << "ERR: 잘못된 형식의 레코드입니다: " << record.op << endl;
             return;
         }
         /** 진행률 출력 */
-        iteration++;
+       //iteration++;
+
 
     }
 //    cout<<"executeMixedWorkload - 끝"<<endl;
@@ -148,7 +154,7 @@ void Workload::deleteAllSSTable() {
         // 디렉터리 내의 모든 파일 순회
         for (const auto& entry : filesystem::directory_iterator(directoryPath)) {
             filesystem::remove(entry.path()); // 파일 삭제
-            cout<<"삭제\n";
+            //"삭제\n";
         }
     } catch (const std::filesystem::filesystem_error& e) {
         cerr << "Error: " << e.what() << endl;
@@ -320,29 +326,34 @@ void Workload::printDelayData(){
 
 
     //delay imm 세기
-    cout<<"delay immutable\n";
+    //cout<<"delay immutable\n";
     
-    cout<<"[ M0 ] "<<  actCon.activeDelayMemtable->mem.size() <<"\n";
+    //cout<<"[ M0 ] "<<  actCon.activeDelayMemtable->mem.size() <<"\n";
     int delayImmMemtableNum=0;
     for(auto memtable : immCon.delayImmMemtableList_M1){
         delayImmMemtableNum+=memtable->mem.size();
-        cout<<"[ M1 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
+        //cout<<"[ M1 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
     }
     for(auto memtable : immCon.delayImmMemtableList_M2){
         delayImmMemtableNum+=memtable->mem.size();
-       cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
+    //   cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
     }
+    cout<<"[ Delay M1 ]  : "<<immCon.delayImmMemtableList_M1.size()<<"\n";
+    cout<<"[ Delay M2 ]  : "<<immCon.delayImmMemtableList_M2.size()<<"\n";
+    cout<<"[ Normal M1 ]  : "<<immCon.normalImmMemtableList_M1.size()<<"\n";
+    cout<<"[ Normal M2 ]  : "<<immCon.normalImmMemtableList_M2.size()<<"\n";
 
-    cout<<"[ M0 ] "<<  actCon.activeNormalMemtable->mem.size() <<"\n";
-    N_memory+= actCon.activeNormalMemtable->mem.size();
-    for(auto memtable : immCon.normalImmMemtableList_M1){
-        N_memory+=memtable->mem.size();
-        cout<<"[ M1 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
-    }
-    for(auto memtable : immCon.normalImmMemtableList_M2){
-        N_memory+=memtable->mem.size();
-       cout<<"[ M2 ]"<<memtable->type<<" - "<<memtable->memtableId<<" : "<< memtable->mem.size()<<"\n";
-    }
+//Compcation Queue
+ //   std::queue<IMemtable*> tempQueue1 = immCon.compactionQueue;
+    // int temp=0;
+    // while (!tempQueue1.empty()) {
+    //     IMemtable* memtable = tempQueue1.front();
+    //     temp+=memtable->mem.size();
+    // }
+
+     cout<<"compaction queue :"<<immCon.compactionQueue.size()<<"\n";
+     int compaction =immCon.compactionQueue.front()->mem.size();
+
 
 
     //flush queue 세기
@@ -359,26 +370,30 @@ void Workload::printDelayData(){
         tempQueue.pop();
     }
 
-    cout<<"flush queue (N / D)"<<N_disk<<" / " <<D_disk<<"\n";
+//    cout<<"flush queue (N / D)"<<N_disk<<" / " <<D_disk<<"\n";
 
     //disk delay, normal 세기
 
-    cout<<"\ndelay SSTable\n";
+    //cout<<"\ndelay SSTable\n";
     int i=0;
     for( auto SSTable: disk.delaySSTables){
         D_disk+=SSTable->rows.size();
-        cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
+        //cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
-    cout<<"\nnormal SSTable\n";
+    //cout<<"\nnormal SSTable\n";
     i=0;
     for( auto SSTable: disk.normalSSTables){
 //        cout<<SSTable->sstableId<<"in 6"<<endl;
         N_disk+=SSTable->rows.size();
-        cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
+        //cout<<"["<<++i<<"] "<<SSTable->sstableId<<": "<<SSTable->rows.size()<<"\n";
     }
 
 
     D_memory = delayImmMemtableNum + actCon.activeDelayMemtable->mem.size();
+
+    cout<<"\ndisk read : "<< immCon.diskReadCnt<<"\n";
+    cout<<"\ndisk read data : "<< immCon.diskReadData<<" \n";
+    N_memory+=compaction;
 
     cout<<"delay data in Memory : "<< D_memory<<"\n";
     cout<<"delay data in Disk : "<<D_disk<<"\n";

@@ -28,10 +28,15 @@ void FlushController::checkTimeout(Type t) {
 //                printFlushQueue(imm);
                 imm.erase(imm.normalImmMemtableList_M2, memtable);
                 timeoutFound = true;
+
+                imm.deleteMem(imm.M2start, memtable->memtableId);
+                imm.deleteMem(imm.M2last, memtable->memtableId);
+                imm.M2min=imm.setMin(imm.M2start);
+                imm.M2max=imm.setMax(imm.M2last);
             }
         }
-    }
-    if(t == D) {
+    }else{
+    //if(t == D) {
         for (const auto memtable: imm.delayImmMemtableList_M2) {
             if (memtable->ttl <= 0) {
                 LOG_STR("2  flushQueue.push\n");
@@ -39,6 +44,10 @@ void FlushController::checkTimeout(Type t) {
 //                printFlushQueue(imm);
                 imm.erase(imm.delayImmMemtableList_M2, memtable);
                 timeoutFound = true;
+                imm.deleteMem(imm.DM2start, memtable->memtableId);
+                imm.deleteMem(imm.DM2last, memtable->memtableId);
+                imm.DM2min=imm.setMin(imm.DM2start);
+                imm.DM2max=imm.setMax(imm.DM2last);
             }
         }
     }
@@ -52,8 +61,8 @@ void FlushController::checkTimeout(Type t) {
 //                printFlushQueue(imm);
                 imm.erase(imm.normalImmMemtableList_M2, normalMem);
             }
-        }
-        else if(t == D) {
+        }else{
+        //else if(t == D) {
             IMemtable *delayMem = findMemtableWithMinAccess(imm.delayImmMemtableList_M2);
 
             if (delayMem != NULL) {

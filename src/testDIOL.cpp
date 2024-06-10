@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) {
 
 
     MockDisk& disk = MockDisk::getInstance();
-
-    cout<<"\ndisk read 횟수 : "<< disk.readCount<<"\n";
+ 
+    
 
     workloadA.printDelayData();
 

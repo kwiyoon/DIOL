@@ -10,7 +10,7 @@ int MockDisk::read(uint64_t key) {
     for (auto ss : normalSSTables) {
         if(ss->startKey > key || ss->lastKey < key)
             continue;
-        readCount++;
+       // readCount++;
         // 맵에서 키 검색
         auto it = ss->rows.find(key);
         if (it != ss->rows.end()) {
@@ -25,7 +25,7 @@ int MockDisk::read(uint64_t key) {
             continue;
 
         // 맵에서 키 검색
-        readCount++;
+        //readCount++;
         auto it = ss->rows.find(key);
         if (it != ss->rows.end()) {
             LOG_STR("(found in delaySStale:"+ to_string(ss->sstableId)+")");
@@ -47,10 +47,9 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
 //    bool flag;
     for (auto ss : normalSSTables) {
 //        flag = false;
-        if(end< ss->startKey && start > ss->lastKey) {
+        if(ss->startKey > end || ss->lastKey < start)
             continue;
-        }
-        readCount++;
+        //readCount++;
         auto itStart = ss->rows.lower_bound(start); // start 이상의 첫 번째 요소를 찾음
         auto itEnd = ss->rows.upper_bound(end);     // end 이하의 마지막 요소의 다음 요소를 찾음
 
@@ -62,7 +61,7 @@ map<uint64_t, int> MockDisk::range(uint64_t start, uint64_t end) {
     }
     for (auto ss : delaySSTables) {
 //        flag = false;
-        if(ss->startKey < start || ss->lastKey > end)
+        if(ss->startKey > end || ss->lastKey < start)
             continue;
         
         auto itStart = ss->rows.lower_bound(start); // start 이상의 첫 번째 요소를 찾음
@@ -112,7 +111,8 @@ bool MockDisk::flush(IMemtable* memtable) {
         normalSSTables.push_back(newSSTable);
         doFlush(memtable->mem.size());
         return true;
-    } else if (memtable->type == DI) {
+    } else{
+    //else if (memtable->type == DI) {
         newSSTable->setType(D);
         delaySSTables.push_back(newSSTable);
         doFlush(memtable->mem.size());

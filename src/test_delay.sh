@@ -24,7 +24,7 @@ case $VALUE in
     ;;
   0.2)
     data=("data_c100000000_d0.20")
-    files=("workloadA_data_c100000000_d0.20" "workloadB_data_c100000000_d0.20" "workloadC_data_c100000000_d0.20" "workloadD_data_c100000000_d0.20" "workloadE_data_c100000000_d0.20" )
+    files=("workloadA_data_c100000000_d0.20" "workloadB_data_c100000000_d0.20" "workloadD_data_c100000000_d0.20" "workloadE_data_c100000000_d0.20" )
     ;;
   0.3)
     data=("data_c100000000_d0.30")

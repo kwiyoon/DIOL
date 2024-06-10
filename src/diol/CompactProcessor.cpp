@@ -17,6 +17,23 @@ long checkTimeRange(IMemtable* memtable, IMemtable* delayMemtable){
     return cnt;
 }
 
+void resetDelayStartLastKey(IMemtable* memtablePtr){
+    uint64_t minKey = numeric_limits<uint64_t>::max();
+    uint64_t maxKey = numeric_limits<uint64_t>::min();
+
+    for (const auto& entry : memtablePtr->mem) {
+        if (entry.first < minKey) minKey = entry.first;
+        if (entry.first > maxKey) maxKey = entry.first;
+    }
+    
+    if (minKey != numeric_limits<uint64_t>::max()) {
+        memtablePtr->setStartKey(minKey);
+    }
+    if (maxKey != numeric_limits<uint64_t>::min()) {
+        memtablePtr->setLastKey(maxKey);
+    }
+}
+
 /** Delay Memtable에서 내부적으로 시간이 겹치는 data들을 찾아 부분 compaction을 진행한다. */
 DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtable*>& delayMemtables) {
     IMemtable* delayTable = findTargetMem(memtable, delayMemtables);
@@ -40,6 +57,7 @@ DelayMemtable* CompactProcessor::compaction(IMemtable* memtable, vector<IMemtabl
     }
 //    cout<<delayTable->mem.size() << endl;
 
+    resetDelayStartLastKey(delayTable);
     return dynamic_cast<DelayMemtable*>(delayTable);
 }
 
@@ -49,15 +67,15 @@ IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable
     uint64_t maxCnt = 0;
     IMemtable* target = nullptr;
 
-    for (const auto delayMem : delayMemtables) {
+    for (const auto delayMem : delayMemtables) { 
         // 다른 thread가 건드는 중이거나 후보라면 패스
         if(delayMem->memTableStatus == COMPACTING
             || delayMem->memTableStatus == WAITING_FOR_COMPACT) continue;
         // ttl이 다 됐다면 M2로 즉시 변환
-//        if(delayMem->ttl == 0){
-//            immutableMemtableController.transformM1toM2(delayMem);
-//        }
-//        else{
+    //    if(delayMem->ttl == 0){//해나
+    //        immutableMemtableController.transformM1toM2(delayMem);
+    //    }
+    //    else{
             long cnt = checkTimeRange(memtable, delayMem);
             if(cnt <= 0) continue;
             if(cnt > maxCnt){
@@ -70,7 +88,7 @@ IMemtable* CompactProcessor::findTargetMem(IMemtable* memtable, vector<IMemtable
                 target = (target->ttl < delayMem->ttl) ? target : delayMem;
                 target->memTableStatus = WAITING_FOR_COMPACT; // 후보 등록
             }
-//        }
+       // }
     }
     return target;
 }
